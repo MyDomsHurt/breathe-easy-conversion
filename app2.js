@@ -21,12 +21,14 @@ function renderToggles() {
 
 function drawStreamChart() {
   const S = DATA.stream;
+  const indices = getStreamFilteredIndices();
+  const labels = indices.map(i => S.monthLabels[i]);
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    const rates = S.streams[s].deal_rate;
+    const rates = indices.map(i => S.streams[s].deal_rate[i]);
     traces.push({
-      x: S.monthLabels, y: rates, name: s,
+      x: labels, y: rates, name: s,
       type: 'scatter', mode: 'lines+markers',
       line: { color: COLORS[s], width: 2.6, shape: 'spline' },
       marker: { size: 6 },
@@ -44,10 +46,13 @@ function drawStreamChart() {
 
 function drawVol() {
   const S = DATA.stream;
+  const indices = getStreamFilteredIndices();
+  const labels = indices.map(i => S.monthLabels[i]);
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    traces.push({ x: S.monthLabels, y: S.streams[s].total, name: s, type: 'bar', marker: { color: COLORS[s], opacity: 0.9 } });
+    const totals = indices.map(i => S.streams[s].total[i]);
+    traces.push({ x: labels, y: totals, name: s, type: 'bar', marker: { color: COLORS[s], opacity: 0.9 } });
   });
   const layout = Object.assign({}, softLayout, {
     barmode: 'group', margin: { t: 36, r: 8, b: 40, l: 40 },
@@ -60,30 +65,28 @@ function drawVol() {
 
 function renderTable() {
   const S = DATA.stream;
+  const indices = getStreamFilteredIndices();
   const thead = document.querySelector('#dataTable thead');
   const tbody = document.querySelector('#dataTable tbody');
-  thead.innerHTML = '<tr><th>Stream</th>' + S.monthLabels.map(m => `<th>${m}</th>`).join('') + '<th>Mar–Jul Avg</th></tr>';
+  if (!thead || !tbody) return;
+  const labels = indices.map(i => S.monthLabels[i]);
+  thead.innerHTML = '<tr><th>Stream</th>' + labels.map(m => `<th>${m}</th>`).join('') + '<th>Range Avg</th></tr>';
   let rows = '';
   streamOrder.forEach(s => {
-    const rates = S.streams[s].deal_rate;
-    const totals = S.streams[s].total;
-    let cells = rates.map((r, i) => {
-      const vol = totals[i];
+    let total = 0, deals = 0;
+    let cells = indices.map(i => {
+      const r = S.streams[s].deal_rate[i];
+      const vol = S.streams[s].total[i] || 0;
+      total += vol;
+      deals += S.streams[s].with_deal[i] || 0;
       let cls = r == null ? '' : (r >= 50 ? 'high' : r >= 20 ? 'mid' : 'low');
       return `<td class="${cls}">${r != null ? r + '%' : '—'}<br><span style="font-size:0.72rem;color:#8A8178">${vol}</span></td>`;
     }).join('');
-    const avg = S.kpi[s];
+    const avg = total > 0 ? Math.round(deals / total * 1000) / 10 : null;
     const acls = avg == null ? '' : (avg >= 50 ? 'high' : avg >= 20 ? 'mid' : 'low');
     rows += `<tr><td><strong>${s}</strong></td>${cells}<td class="${acls}">${avg != null ? avg + '%' : '—'}</td></tr>`;
   });
   tbody.innerHTML = rows;
-}
-
-function monthKey(d) {
-  if (typeof d === 'string') return d.slice(0, 7);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  return y + '-' + m;
 }
 
 function filterPieSource(source) {
@@ -159,34 +162,4 @@ function drawPie() {
   renderPieTable('pieTableBody', withDeal);
 }
 
-function setDatePillActive(id) {
-  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-  if (id) { const el = document.getElementById(id); if (el) el.classList.add('active'); }
-}
-
-function initPieDates() {
-  const p = DATA.pie;
-  const startEl = document.getElementById('pieStart');
-  const endEl = document.getElementById('pieEnd');
-  if (!startEl || !p) return;
-  startEl.min = p.minDate; startEl.max = p.maxDate;
-  endEl.min = p.minDate; endEl.max = p.maxDate;
-  startEl.value = p.minDate; endEl.value = p.maxDate;
-  setDatePillActive('pieAll');
-  document.getElementById('pieApply').addEventListener('click', () => { setDatePillActive('pieApply'); drawPie(); });
-  document.getElementById('pieAll').addEventListener('click', () => { startEl.value = p.minDate; endEl.value = p.maxDate; setDatePillActive('pieAll'); drawPie(); });
-  document.getElementById('pie90').addEventListener('click', () => { const end = new Date(p.maxDate); const start = new Date(end); start.setDate(start.getDate() - 90); startEl.value = start.toISOString().slice(0, 10); endEl.value = p.maxDate; setDatePillActive('pie90'); drawPie(); });
-  document.getElementById('pieYTD').addEventListener('click', () => { startEl.value = '2026-01-01'; endEl.value = p.maxDate; setDatePillActive('pieYTD'); drawPie(); });
-  startEl.addEventListener('change', () => setDatePillActive(null));
-  endEl.addEventListener('change', () => setDatePillActive(null));
-}
-
-renderWeeklyToggles();
-drawWeekly();
-drawRate();
-renderStreamKPIs();
 renderToggles();
-renderTable();
-drawStreamChart();
-drawVol();
-initPieDates();
