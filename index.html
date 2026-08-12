@@ -23,13 +23,7 @@
   .auth-card .logo-mark { margin-bottom: 20px; }
   .auth-card h1 { font-size: 1.6rem; margin-bottom: 8px; }
   .auth-card p { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; font-weight: 500; }
-  .btn-google {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    font-family: inherit; font-size: 0.95rem; font-weight: 700;
-    padding: 12px 22px; border-radius: 999px;
-    border: 1.5px solid var(--border); background: #fff; color: var(--text);
-    cursor: pointer; box-shadow: 0 2px 12px rgba(45,42,38,0.06);
-  }
+  .btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 12px 22px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--text); cursor: pointer; box-shadow: 0 2px 12px rgba(45,42,38,0.06); }
   .btn-google:hover { border-color: var(--accent); }
   .btn-google:disabled { opacity: 0.6; cursor: wait; }
   #auth-error { display: none; color: #C45C4A; font-size: 0.88rem; font-weight: 600; margin-top: 16px; line-height: 1.4; }
@@ -80,7 +74,7 @@
   <div class="nav">
     <button class="nav-btn active" data-section="weekly">Weekly Contact Flow</button>
     <button class="nav-btn" data-section="streams">Conversion by Stream</button>
-    <button class="nav-btn" data-section="customers">Customer Base</button>
+    <button class="nav-btn" data-section="customers">Base by Stream</button>
   </div>
 
   <div id="section-weekly" class="section active">
@@ -132,7 +126,7 @@
   <div id="section-customers" class="section">
     <div class="card" style="padding-bottom: 8px;">
       <h2>Date range</h2>
-      <div class="desc">Only customers whose contact was created in this window are included.</div>
+      <div class="desc">Applies to both pies — records created in this window only.</div>
       <div class="date-row">
         <div class="date-field"><label>From</label><input type="date" id="pieStart" /></div>
         <div class="date-field"><label>To</label><input type="date" id="pieEnd" /></div>
@@ -142,16 +136,31 @@
         <button class="date-btn" id="pieYTD">2026 YTD</button>
       </div>
     </div>
+
     <div class="kpi-row">
-      <div class="kpi orange"><div class="label">Customers in range</div><div class="value" id="kpi-pie-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
+      <div class="kpi orange"><div class="label">Contacts in range</div><div class="value" id="kpi-contacts-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
+      <div class="kpi teal"><div class="label">Customers in range</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Lifecycle = Customer</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Contact base by stream</h2>
+      <div class="desc">All contacts created in the selected period, by acquisition stream — whether or not they have a deal.</div>
+      <div id="contactsPieChart" class="chart" style="height:420px;"></div>
     </div>
     <div class="card">
+      <h2>Contact breakdown</h2>
+      <div style="overflow-x:auto;">
+        <table id="contactsPieTable"><thead><tr><th>Stream</th><th>Contacts</th><th>Share</th></tr></thead><tbody id="contactsPieTableBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Customer base by stream</h2>
-      <div class="desc">How customers created in the selected period are split across streams.</div>
+      <div class="desc">Customers (lifecycle) created in the selected period, by acquisition stream.</div>
       <div id="pieChart" class="chart" style="height:420px;"></div>
     </div>
     <div class="card">
-      <h2>Breakdown</h2>
+      <h2>Customer breakdown</h2>
       <div style="overflow-x:auto;">
         <table id="pieTable"><thead><tr><th>Stream</th><th>Customers</th><th>Share</th></tr></thead><tbody id="pieTableBody"></tbody></table>
       </div>
