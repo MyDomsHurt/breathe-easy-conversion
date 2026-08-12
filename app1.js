@@ -113,27 +113,40 @@ function drawWeekly() {
 
 function drawRate() {
   const f = getWeeklyFiltered();
+  // Only plot weeks that had contacts — stops wild curves from empty weeks / n=1 spikes
+  const xs = [], ys = [], texts = [];
+  for (let i = 0; i < f.labels.length; i++) {
+    if (f.new_contacts[i] > 0 && f.deal_rate[i] != null) {
+      xs.push(f.labels[i]);
+      ys.push(f.deal_rate[i]);
+      texts.push(f.new_contacts[i] + ' contacts');
+    }
+  }
   const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
+  const maxY = ys.length ? Math.max(35, Math.ceil(Math.max(...ys) / 5) * 5) : 35;
   const trace = [{
-    x: f.labels, y: f.deal_rate, name: 'Deal Rate',
+    x: xs, y: ys, name: 'Deal Rate',
     type: 'scatter', mode: 'lines+markers',
     line: { color: '#E76F51', width: 2.5, shape: 'spline' },
-    marker: { size: 6, color: '#E76F51' },
+    marker: { size: 7, color: '#E76F51' },
     fill: 'tozeroy', fillcolor: 'rgba(231, 111, 81, 0.09)',
-    hovertemplate: '%{x}<br>%{y:.0f}%<extra></extra>'
+    text: texts,
+    hovertemplate: '%{x}<br>%{y:.0f}% (%{text})<extra></extra>',
+    connectgaps: false
   }];
   const layout = Object.assign({}, softLayout, {
     margin: { t: 16, r: 8, b: 36, l: 40 },
     xaxis: {
       tickmode: 'array', tickvals: f.labels, ticktext: ticktext,
       tickfont: { size: 11, color: '#8A8178' },
-      showgrid: false, zeroline: false, showline: false, fixedrange: true
+      showgrid: false, zeroline: false, showline: false, fixedrange: true,
+      range: [-0.5, f.labels.length - 0.5]
     },
     yaxis: {
       title: { text: '', font: { size: 11 } },
       tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%',
       gridcolor: 'rgba(138,129,120,0.22)',
-      zeroline: false, showline: false, range: [0, 35], dtick: 5, fixedrange: true
+      zeroline: false, showline: false, range: [0, maxY], dtick: 5, fixedrange: true
     },
     showlegend: false
   });
