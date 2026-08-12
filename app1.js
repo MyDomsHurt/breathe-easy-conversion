@@ -12,7 +12,7 @@ const COLORS = {
 const streamOrder = ['Referral', 'Affiliate', 'Website', 'Facebook', 'Instagram', 'Meta Ads', 'Unspecified'];
 let active = new Set(streamOrder);
 let weeklyActive = new Set(streamOrder);
-let mode = 'cust';
+let mode = 'deal';
 
 const plotFont = { family: 'Nunito, sans-serif', color: '#2D2A26', size: 13 };
 const softLayout = {
@@ -179,6 +179,6 @@ function renderStreamKPIs() {
     <div class="kpi">
       <div class="label">${s}</div>
       <div class="value" style="color:${COLORS[s]}">${DATA.stream.kpi[s] != null ? DATA.stream.kpi[s] + '%' : '—'}</div>
-      <div class="sub">Mar–Jul avg</div>
+      <div class="sub">Mar–Jul deal rate</div>
     </div>`).join('');
 }
