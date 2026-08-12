@@ -111,21 +111,41 @@ function filterPieSource(source) {
 function renderDonut(chartId, f, unitLabel) {
   if (!document.getElementById(chartId)) return;
   const colors = f.labels.map(l => COLORS[l] || '#B8A99A');
+  const isNarrow = window.innerWidth < 700;
   const trace = [{
-    type: 'pie', labels: f.labels, values: f.values,
+    type: 'pie',
+    labels: f.labels,
+    values: f.values,
     marker: { colors: colors, line: { width: 2, color: '#FDF8F4' } },
-    textinfo: 'label+percent', textposition: 'outside',
-    textfont: { size: 12, color: '#2D2A26', family: 'Nunito, sans-serif' },
+    textinfo: isNarrow ? 'percent' : 'label+percent',
+    textposition: 'outside',
+    textfont: { size: isNarrow ? 11 : 12, color: '#2D2A26', family: 'Nunito, sans-serif' },
     hovertemplate: '<b>%{label}</b><br>%{value:,} ' + unitLabel + '<br>%{percent}<extra></extra>',
-    hole: 0.45, sort: false, direction: 'clockwise'
+    hole: 0.48,
+    sort: false,
+    direction: 'clockwise',
+    automargin: true
   }];
   const layout = {
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: plotFont,
-    margin: { t: 20, r: 20, b: 20, l: 20 }, showlegend: false,
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: plotFont,
+    margin: isNarrow
+      ? { t: 36, r: 36, b: 36, l: 36 }
+      : { t: 48, r: 72, b: 48, l: 72 },
+    showlegend: isNarrow,
+    legend: isNarrow ? {
+      orientation: 'h',
+      y: -0.12,
+      x: 0.5,
+      xanchor: 'center',
+      font: { size: 11, family: 'Nunito, sans-serif' },
+      bgcolor: 'rgba(0,0,0,0)'
+    } : undefined,
     annotations: [{
       text: '<b>' + f.total.toLocaleString() + '</b><br>' + unitLabel,
       showarrow: false,
-      font: { size: 16, color: '#2D2A26', family: 'Nunito, sans-serif' }
+      font: { size: isNarrow ? 14 : 16, color: '#2D2A26', family: 'Nunito, sans-serif' }
     }]
   };
   Plotly.newPlot(chartId, trace, layout, {responsive: true, displayModeBar: false});
