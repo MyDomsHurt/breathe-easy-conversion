@@ -1,1 +1,195 @@
-LOADING
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breathe Easy · Calm Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .date-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+  }
+  .date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .date-field label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .date-field input[type="date"] {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--bg-soft);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    outline: none;
+  }
+  .date-field input[type="date"]:focus {
+    border-color: var(--accent);
+  }
+  .date-btn {
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .date-btn:hover, .date-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3c.5 2 1.5 3.5 3 4.5-1.5 1-2.5 2.5-3 4.5-.5-2-1.5-3.5-3-4.5 1.5-1 2.5-2.5 3-4.5z"/>
+        <path d="M12 12c.4 1.6 1.2 2.8 2.4 3.6-1.2.8-2 2-2.4 3.6-.4-1.6-1.2-2.8-2.4-3.6 1.2-.8 2-2 2.4-3.6z"/>
+      </svg>
+    </div>
+    <h1>Breathe <span>Easy</span></h1>
+    <div class="subtitle">A calm view of your contacts & conversions · 12 Aug 2026</div>
+  </header>
+
+  <div class="nav">
+    <button class="nav-btn active" data-section="weekly">Weekly Contact Flow</button>
+    <button class="nav-btn" data-section="streams">Conversion by Stream</button>
+    <button class="nav-btn" data-section="customers">Customer Base</button>
+  </div>
+
+  <div id="section-weekly" class="section active">
+    <div class="kpi-row">
+      <div class="kpi orange">
+        <div class="label">New Contacts</div>
+        <div class="value" id="kpi-total-new">—</div>
+        <div class="sub">Selected streams · 90d</div>
+      </div>
+      <div class="kpi teal">
+        <div class="label">With a Deal</div>
+        <div class="value" id="kpi-with-deal">—</div>
+        <div class="sub">of those new contacts</div>
+      </div>
+      <div class="kpi blue">
+        <div class="label">Association Rate</div>
+        <div class="value" id="kpi-rate">—</div>
+        <div class="sub">overall</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>New contacts each week</h2>
+      <div class="desc">Toggle streams below to include or exclude them from the trend.</div>
+      <div class="controls" id="weeklyToggles" style="margin-bottom:16px;"></div>
+      <div id="weeklyChart" class="chart"></div>
+      <div class="note"><strong>Gentle reminder:</strong> The most recent week is still partial. Newer contacts naturally have lower deal rates.</div>
+    </div>
+    <div class="card">
+      <h2>How many of each week's contacts got a deal</h2>
+      <div class="desc">Deal association rate for the streams currently selected. Weeks with fewer than 5 contacts are omitted.</div>
+      <div id="rateChart" class="chart-sm"></div>
+    </div>
+  </div>
+
+  <div id="section-streams" class="section">
+    <div class="kpi-row" id="streamKpis"></div>
+    <div class="card">
+      <h2>Conversion rate over time</h2>
+      <div class="desc">Percentage of contacts created each month that later became Customers. Tap the stream pills to focus.</div>
+      <div class="controls">
+        <div id="toggles"></div>
+        <div class="mode-btns">
+          <button class="mode-btn active" data-mode="cust">Customer %</button>
+          <button class="mode-btn" data-mode="deal">Has Deal %</button>
+        </div>
+      </div>
+      <div id="streamChart" class="chart"></div>
+      <div class="note"><strong>Context:</strong> July & August numbers will keep rising as leads mature.</div>
+    </div>
+    <div class="card">
+      <h2>Where the new contacts came from</h2>
+      <div class="desc">Monthly volume by acquisition stream.</div>
+      <div id="volChart" class="chart-sm"></div>
+    </div>
+    <div class="card">
+      <h2>Numbers at a glance</h2>
+      <div style="overflow-x:auto;">
+        <table id="dataTable"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="section-customers" class="section">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Only customers whose contact was created in this window are included.</div>
+      <div class="date-row">
+        <div class="date-field">
+          <label>From</label>
+          <input type="date" id="pieStart" />
+        </div>
+        <div class="date-field">
+          <label>To</label>
+          <input type="date" id="pieEnd" />
+        </div>
+        <button class="date-btn" id="pieApply">Apply</button>
+        <button class="date-btn" id="pieAll">All time</button>
+        <button class="date-btn" id="pie90">Last 90 days</button>
+        <button class="date-btn" id="pieYTD">2026 YTD</button>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi orange">
+        <div class="label">Customers in range</div>
+        <div class="value" id="kpi-pie-total">—</div>
+        <div class="sub" id="kpi-pie-range">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Customer base by stream</h2>
+      <div class="desc">How customers created in the selected period are split across streams.</div>
+      <div id="pieChart" class="chart" style="height:420px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Breakdown</h2>
+      <div style="overflow-x:auto;">
+        <table id="pieTable">
+          <thead>
+            <tr><th>Stream</th><th>Customers</th><th>Share</th></tr>
+          </thead>
+          <tbody id="pieTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="data.js"></script>
+<script src="app1.js"></script>
+<script src="app2.js"></script>
+</body>
+</html>
