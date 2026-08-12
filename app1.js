@@ -113,25 +113,22 @@ function drawWeekly() {
 
 function drawRate() {
   const f = getWeeklyFiltered();
-  // Only plot weeks that had contacts — stops wild curves from empty weeks / n=1 spikes
-  const xs = [], ys = [], texts = [];
-  for (let i = 0; i < f.labels.length; i++) {
-    if (f.new_contacts[i] > 0 && f.deal_rate[i] != null) {
-      xs.push(f.labels[i]);
-      ys.push(f.deal_rate[i]);
-      texts.push(f.new_contacts[i] + ' contacts');
-    }
-  }
+  // Same treatment for every stream: full x-axis, null when no contacts, no gap-filling
   const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
-  const maxY = ys.length ? Math.max(35, Math.ceil(Math.max(...ys) / 5) * 5) : 35;
+  const yVals = f.deal_rate.map(r => r);
+  const valid = yVals.filter(v => v != null);
+  const maxY = valid.length ? Math.max(35, Math.ceil(Math.max(...valid) / 5) * 5) : 35;
   const trace = [{
-    x: xs, y: ys, name: 'Deal Rate',
-    type: 'scatter', mode: 'lines+markers',
-    line: { color: '#E76F51', width: 2.5, shape: 'spline' },
+    x: f.labels,
+    y: yVals,
+    name: 'Deal Rate',
+    type: 'scatter',
+    mode: 'lines+markers',
+    line: { color: '#E76F51', width: 2.5, shape: 'linear' },
     marker: { size: 7, color: '#E76F51' },
-    fill: 'tozeroy', fillcolor: 'rgba(231, 111, 81, 0.09)',
-    text: texts,
-    hovertemplate: '%{x}<br>%{y:.0f}% (%{text})<extra></extra>',
+    fill: 'tozeroy',
+    fillcolor: 'rgba(231, 111, 81, 0.09)',
+    hovertemplate: '%{x}<br>%{y:.0f}%<extra></extra>',
     connectgaps: false
   }];
   const layout = Object.assign({}, softLayout, {
@@ -139,8 +136,7 @@ function drawRate() {
     xaxis: {
       tickmode: 'array', tickvals: f.labels, ticktext: ticktext,
       tickfont: { size: 11, color: '#8A8178' },
-      showgrid: false, zeroline: false, showline: false, fixedrange: true,
-      range: [-0.5, f.labels.length - 0.5]
+      showgrid: false, zeroline: false, showline: false, fixedrange: true
     },
     yaxis: {
       title: { text: '', font: { size: 11 } },
