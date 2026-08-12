@@ -102,7 +102,7 @@ function drawWeekly() {
       title: { text: '', font: { size: 11 } },
       tickfont: { size: 11, color: '#8A8178' },
       gridcolor: 'rgba(138,129,120,0.22)', gridwidth: 1,
-      zeroline: false, showline: false, fixedrange: true, nticks: 8, separatethousands: true
+      zeroline: false, showline: false, fixedrange: true, nticks: 6, separatethousands: true
     },
     legend: {
       orientation: 'h', y: 1.15, x: 0, xanchor: 'left',
@@ -117,7 +117,13 @@ function drawRate() {
   const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
   const yVals = f.deal_rate.map(r => r);
   const valid = yVals.filter(v => v != null);
-  const maxY = valid.length ? Math.max(30, Math.ceil(Math.max(...valid) / 5) * 5) : 30;
+  const peak = valid.length ? Math.max(...valid) : 0;
+  // Adaptive scale + step so high conversion doesn't produce a wall of gridlines
+  let maxY, step;
+  if (peak <= 25) { maxY = 30; step = 5; }
+  else if (peak <= 50) { maxY = Math.ceil(peak / 10) * 10 + 10; step = 10; }
+  else if (peak <= 80) { maxY = Math.ceil(peak / 20) * 20 + 20; step = 20; }
+  else { maxY = 100; step = 25; }
   const trace = [{
     x: f.labels,
     y: yVals,
@@ -142,7 +148,7 @@ function drawRate() {
       title: { text: '', font: { size: 11 } },
       tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%',
       gridcolor: 'rgba(138,129,120,0.22)',
-      zeroline: false, showline: false, range: [0, maxY], dtick: 5, fixedrange: true
+      zeroline: false, showline: false, range: [0, maxY], dtick: step, fixedrange: true
     },
     showlegend: false
   });
