@@ -12,7 +12,8 @@
   // Conversion dashboard only — not the performance team list
   const ALLOWED = [
     "jefflamb1992@gmail.com",
-    "joshua@breathe-easyhk.com"
+    "joshua@breathe-easyhk.com",
+    "iamruby112@gmail.com"
   ].map(function (e) { return e.toLowerCase(); });
 
   if (!window.firebase) {
