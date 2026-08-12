@@ -50,7 +50,8 @@ function getWeeklyFiltered() {
       withD[i] += st.with_deal[i] || 0;
     }
   });
-  const rates = newC.map((c, i) => c > 0 ? Math.round(withD[i] / c * 1000) / 10 : null);
+  // Rate only meaningful with enough volume; null when n < 5
+  const rates = newC.map((c, i) => c >= 5 ? Math.round(withD[i] / c * 1000) / 10 : null);
   const totalNew = newC.reduce((a,b) => a+b, 0);
   const totalDeal = withD.reduce((a,b) => a+b, 0);
   return {
@@ -116,7 +117,7 @@ function drawRate() {
   const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
   const yVals = f.deal_rate.map(r => r);
   const valid = yVals.filter(v => v != null);
-  const maxY = valid.length ? Math.max(35, Math.ceil(Math.max(...valid) / 5) * 5) : 35;
+  const maxY = valid.length ? Math.max(30, Math.ceil(Math.max(...valid) / 5) * 5) : 30;
   const trace = [{
     x: f.labels,
     y: yVals,
