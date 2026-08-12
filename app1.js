@@ -31,8 +31,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.getElementById('section-' + btn.dataset.section).classList.add('active');
     if (btn.dataset.section === 'weekly') {
       drawWeekly(); drawRate();
-    } else {
+    } else if (btn.dataset.section === 'streams') {
       drawStreamChart(); drawVol();
+    } else if (btn.dataset.section === 'customers') {
+      drawPie();
     }
   });
 });
@@ -50,7 +52,6 @@ function getWeeklyFiltered() {
       withD[i] += st.with_deal[i] || 0;
     }
   });
-  // Rate only meaningful with enough volume; null when n < 5
   const rates = newC.map((c, i) => c >= 5 ? Math.round(withD[i] / c * 1000) / 10 : null);
   const totalNew = newC.reduce((a,b) => a+b, 0);
   const totalDeal = withD.reduce((a,b) => a+b, 0);
@@ -118,22 +119,17 @@ function drawRate() {
   const yVals = f.deal_rate.map(r => r);
   const valid = yVals.filter(v => v != null);
   const peak = valid.length ? Math.max(...valid) : 0;
-  // Adaptive scale + step so high conversion doesn't produce a wall of gridlines
   let maxY, step;
   if (peak <= 25) { maxY = 30; step = 5; }
   else if (peak <= 50) { maxY = Math.ceil(peak / 10) * 10 + 10; step = 10; }
   else if (peak <= 80) { maxY = Math.ceil(peak / 20) * 20 + 20; step = 20; }
   else { maxY = 100; step = 25; }
   const trace = [{
-    x: f.labels,
-    y: yVals,
-    name: 'Deal Rate',
-    type: 'scatter',
-    mode: 'lines+markers',
+    x: f.labels, y: yVals, name: 'Deal Rate',
+    type: 'scatter', mode: 'lines+markers',
     line: { color: '#E76F51', width: 2.5, shape: 'spline' },
     marker: { size: 7, color: '#E76F51' },
-    fill: 'tozeroy',
-    fillcolor: 'rgba(231, 111, 81, 0.09)',
+    fill: 'tozeroy', fillcolor: 'rgba(231, 111, 81, 0.09)',
     hovertemplate: '%{x}<br>%{y:.0f}%<extra></extra>',
     connectgaps: false
   }];
