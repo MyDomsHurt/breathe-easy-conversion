@@ -43,16 +43,8 @@ function drawStreamChart() {
   });
   const layout = Object.assign({}, softLayout, {
     margin: { t: 40, r: 8, b: 40, l: 40 },
-    xaxis: {
-      tickfont: { size: 12, color: '#8A8178' },
-      showgrid: false, zeroline: false, showline: false, fixedrange: true
-    },
-    yaxis: {
-      title: { text: '', font: { size: 11 } },
-      tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%',
-      gridcolor: 'rgba(138,129,120,0.22)',
-      range: [0, 100], dtick: 10, zeroline: false, showline: false, fixedrange: true
-    },
+    xaxis: { tickfont: { size: 12, color: '#8A8178' }, showgrid: false, zeroline: false, showline: false, fixedrange: true },
+    yaxis: { title: { text: '', font: { size: 11 } }, tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%', gridcolor: 'rgba(138,129,120,0.22)', range: [0, 100], dtick: 10, zeroline: false, showline: false, fixedrange: true },
     legend: { orientation: 'h', y: 1.15, font: { size: 12 }, bgcolor: 'rgba(0,0,0,0)' }
   });
   Plotly.newPlot('streamChart', traces, layout, {responsive: true, displayModeBar: false});
@@ -63,24 +55,12 @@ function drawVol() {
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    traces.push({
-      x: S.monthLabels, y: S.streams[s].total, name: s,
-      type: 'bar', marker: { color: COLORS[s], opacity: 0.9 }
-    });
+    traces.push({ x: S.monthLabels, y: S.streams[s].total, name: s, type: 'bar', marker: { color: COLORS[s], opacity: 0.9 } });
   });
   const layout = Object.assign({}, softLayout, {
-    barmode: 'group',
-    margin: { t: 36, r: 8, b: 40, l: 40 },
-    xaxis: {
-      tickfont: { size: 12, color: '#8A8178' },
-      showgrid: false, zeroline: false, showline: false, fixedrange: true
-    },
-    yaxis: {
-      title: { text: '', font: { size: 11 } },
-      tickfont: { size: 11, color: '#8A8178' },
-      gridcolor: 'rgba(138,129,120,0.22)', nticks: 6,
-      zeroline: false, showline: false, fixedrange: true, separatethousands: true
-    },
+    barmode: 'group', margin: { t: 36, r: 8, b: 40, l: 40 },
+    xaxis: { tickfont: { size: 12, color: '#8A8178' }, showgrid: false, zeroline: false, showline: false, fixedrange: true },
+    yaxis: { title: { text: '', font: { size: 11 } }, tickfont: { size: 11, color: '#8A8178' }, gridcolor: 'rgba(138,129,120,0.22)', nticks: 6, zeroline: false, showline: false, fixedrange: true, separatethousands: true },
     legend: { orientation: 'h', y: 1.15, font: { size: 12 }, bgcolor: 'rgba(0,0,0,0)' }
   });
   Plotly.newPlot('volChart', traces, layout, {responsive: true, displayModeBar: false});
@@ -120,18 +100,13 @@ function getPieFiltered() {
   const endEl = document.getElementById('pieEnd');
   let startM = startEl && startEl.value ? monthKey(startEl.value) : null;
   let endM = endEl && endEl.value ? monthKey(endEl.value) : null;
-
   const counts = {};
   p.streams.forEach(s => counts[s] = 0);
-
   (p.monthly || []).forEach(row => {
     if (startM && row.month < startM) return;
     if (endM && row.month > endM) return;
-    p.streams.forEach(s => {
-      counts[s] += (row.counts && row.counts[s]) || 0;
-    });
+    p.streams.forEach(s => { counts[s] += (row.counts && row.counts[s]) || 0; });
   });
-
   const labels = p.streams;
   const values = labels.map(s => counts[s]);
   const total = values.reduce((a, b) => a + b, 0);
@@ -139,50 +114,24 @@ function getPieFiltered() {
 }
 
 function drawPie() {
+  if (!document.getElementById('pieChart')) return;
   const f = getPieFiltered();
   document.getElementById('kpi-pie-total').textContent = f.total.toLocaleString();
   const rangeLabel = (f.startM || (DATA.pie.minDate || '').slice(0,7)) + ' → ' + (f.endM || (DATA.pie.maxDate || '').slice(0,7));
   document.getElementById('kpi-pie-range').textContent = rangeLabel;
-
   const colors = f.labels.map(l => COLORS[l] || '#B8A99A');
-  const trace = [{
-    type: 'pie',
-    labels: f.labels,
-    values: f.values,
-    marker: { colors: colors, line: { width: 2, color: '#FDF8F4' } },
-    textinfo: 'label+percent',
-    textposition: 'outside',
-    textfont: { size: 12, color: '#2D2A26', family: 'Nunito, sans-serif' },
-    hovertemplate: '<b>%{label}</b><br>%{value:,} customers<br>%{percent}<extra></extra>',
-    hole: 0.45,
-    sort: false,
-    direction: 'clockwise'
-  }];
-  const layout = {
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    font: plotFont,
-    margin: { t: 20, r: 20, b: 20, l: 20 },
-    showlegend: false,
-    annotations: [{
-      text: '<b>' + f.total.toLocaleString() + '</b><br>customers',
-      showarrow: false,
-      font: { size: 16, color: '#2D2A26', family: 'Nunito, sans-serif' }
-    }]
-  };
+  const trace = [{ type: 'pie', labels: f.labels, values: f.values, marker: { colors: colors, line: { width: 2, color: '#FDF8F4' } }, textinfo: 'label+percent', textposition: 'outside', textfont: { size: 12, color: '#2D2A26', family: 'Nunito, sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{value:,} customers<br>%{percent}<extra></extra>', hole: 0.45, sort: false, direction: 'clockwise' }];
+  const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: plotFont, margin: { t: 20, r: 20, b: 20, l: 20 }, showlegend: false, annotations: [{ text: '<b>' + f.total.toLocaleString() + '</b><br>customers', showarrow: false, font: { size: 16, color: '#2D2A26', family: 'Nunito, sans-serif' } }] };
   Plotly.newPlot('pieChart', trace, layout, {responsive: true, displayModeBar: false});
-
   const tbody = document.getElementById('pieTableBody');
   const total = f.total || 1;
-  const rows = f.labels.map((lab, i) => ({ lab, val: f.values[i], pct: (f.values[i] / total * 100) }))
-    .sort((a, b) => b.val - a.val);
-  tbody.innerHTML = rows.map(r =>
-    `<tr>
-      <td><strong style="color:${COLORS[r.lab] || '#8A8178'}">${r.lab}</strong></td>
-      <td>${r.val.toLocaleString()}</td>
-      <td>${r.pct.toFixed(1)}%</td>
-    </tr>`
-  ).join('');
+  const rows = f.labels.map((lab, i) => ({ lab, val: f.values[i], pct: (f.values[i] / total * 100) })).sort((a, b) => b.val - a.val);
+  tbody.innerHTML = rows.map(r => `<tr><td><strong style="color:${COLORS[r.lab] || '#8A8178'}">${r.lab}</strong></td><td>${r.val.toLocaleString()}</td><td>${r.pct.toFixed(1)}%</td></tr>`).join('');
+}
+
+function setDatePillActive(id) {
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  if (id) { const el = document.getElementById(id); if (el) el.classList.add('active'); }
 }
 
 function initPieDates() {
@@ -190,35 +139,18 @@ function initPieDates() {
   const startEl = document.getElementById('pieStart');
   const endEl = document.getElementById('pieEnd');
   if (!startEl || !p) return;
-  startEl.min = p.minDate;
-  startEl.max = p.maxDate;
-  endEl.min = p.minDate;
-  endEl.max = p.maxDate;
-  startEl.value = p.minDate;
-  endEl.value = p.maxDate;
-
-  document.getElementById('pieApply').addEventListener('click', () => drawPie());
-  document.getElementById('pieAll').addEventListener('click', () => {
-    startEl.value = p.minDate;
-    endEl.value = p.maxDate;
-    drawPie();
-  });
-  document.getElementById('pie90').addEventListener('click', () => {
-    const end = new Date(p.maxDate);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 90);
-    startEl.value = start.toISOString().slice(0, 10);
-    endEl.value = p.maxDate;
-    drawPie();
-  });
-  document.getElementById('pieYTD').addEventListener('click', () => {
-    startEl.value = '2026-01-01';
-    endEl.value = p.maxDate;
-    drawPie();
-  });
+  startEl.min = p.minDate; startEl.max = p.maxDate;
+  endEl.min = p.minDate; endEl.max = p.maxDate;
+  startEl.value = p.minDate; endEl.value = p.maxDate;
+  setDatePillActive('pieAll');
+  document.getElementById('pieApply').addEventListener('click', () => { setDatePillActive('pieApply'); drawPie(); });
+  document.getElementById('pieAll').addEventListener('click', () => { startEl.value = p.minDate; endEl.value = p.maxDate; setDatePillActive('pieAll'); drawPie(); });
+  document.getElementById('pie90').addEventListener('click', () => { const end = new Date(p.maxDate); const start = new Date(end); start.setDate(start.getDate() - 90); startEl.value = start.toISOString().slice(0, 10); endEl.value = p.maxDate; setDatePillActive('pie90'); drawPie(); });
+  document.getElementById('pieYTD').addEventListener('click', () => { startEl.value = '2026-01-01'; endEl.value = p.maxDate; setDatePillActive('pieYTD'); drawPie(); });
+  startEl.addEventListener('change', () => setDatePillActive(null));
+  endEl.addEventListener('change', () => setDatePillActive(null));
 }
 
-// Init
 renderWeeklyToggles();
 drawWeekly();
 drawRate();
