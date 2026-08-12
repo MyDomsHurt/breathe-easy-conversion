@@ -1,4 +1,4 @@
-/* Firebase Google Sign-In gate — same project as breathe-easy-dashboard */
+/* Firebase Google Sign-In gate — conversion dashboard (own allowlist) */
 (function () {
   const firebaseConfig = {
     apiKey: "AIzaSyBnfbQ5qlfo0DD7HkryszeNGRclvj0i99Q",
@@ -9,14 +9,9 @@
     appId: "1:42449914362:web:0c727c239807c6da773c43"
   };
 
+  // Conversion dashboard only — not the performance team list
   const ALLOWED = [
-    "iggi.king@gmail.com",
     "jefflamb1992@gmail.com",
-    "matthewgross2001@gmail.com",
-    "neltrestium@gmail.com",
-    "sudor23@gmail.com",
-    "tiagogiri334@gmail.com",
-    "iamruby112@gmail.com",
     "joshua@breathe-easyhk.com"
   ].map(function (e) { return e.toLowerCase(); });
 
