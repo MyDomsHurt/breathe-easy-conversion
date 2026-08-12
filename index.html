@@ -126,7 +126,7 @@
   <div id="section-customers" class="section">
     <div class="card" style="padding-bottom: 8px;">
       <h2>Date range</h2>
-      <div class="desc">Applies to both pies — records created in this window only.</div>
+      <div class="desc">Applies to both pies — based on contact create date.</div>
       <div class="date-row">
         <div class="date-field"><label>From</label><input type="date" id="pieStart" /></div>
         <div class="date-field"><label>To</label><input type="date" id="pieEnd" /></div>
@@ -139,12 +139,12 @@
 
     <div class="kpi-row">
       <div class="kpi orange"><div class="label">Contacts in range</div><div class="value" id="kpi-contacts-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
-      <div class="kpi teal"><div class="label">Customers in range</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Lifecycle = Customer</div></div>
+      <div class="kpi teal"><div class="label">With a deal</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Excludes Closed Lost</div></div>
     </div>
 
     <div class="card">
       <h2>Contact base by stream</h2>
-      <div class="desc">All contacts created in the selected period, by acquisition stream — whether or not they have a deal.</div>
+      <div class="desc">All contacts created in the selected period, by acquisition stream.</div>
       <div id="contactsPieChart" class="chart" style="height:420px;"></div>
     </div>
     <div class="card">
@@ -155,14 +155,14 @@
     </div>
 
     <div class="card">
-      <h2>Customer base by stream</h2>
-      <div class="desc">Customers (lifecycle) created in the selected period, by acquisition stream.</div>
+      <h2>With a deal by stream</h2>
+      <div class="desc">Contacts created in the selected period who have at least one deal that is not Closed Lost.</div>
       <div id="pieChart" class="chart" style="height:420px;"></div>
     </div>
     <div class="card">
-      <h2>Customer breakdown</h2>
+      <h2>With a deal — breakdown</h2>
       <div style="overflow-x:auto;">
-        <table id="pieTable"><thead><tr><th>Stream</th><th>Customers</th><th>Share</th></tr></thead><tbody id="pieTableBody"></tbody></table>
+        <table id="pieTable"><thead><tr><th>Stream</th><th>With a deal</th><th>Share</th></tr></thead><tbody id="pieTableBody"></tbody></table>
       </div>
     </div>
   </div>
