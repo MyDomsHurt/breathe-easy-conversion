@@ -80,7 +80,7 @@
   <div id="section-weekly" class="section active">
     <div class="kpi-row">
       <div class="kpi orange"><div class="label">New Contacts</div><div class="value" id="kpi-total-new">—</div><div class="sub">Selected streams · 90d</div></div>
-      <div class="kpi teal"><div class="label">With a Deal</div><div class="value" id="kpi-with-deal">—</div><div class="sub">of those new contacts</div></div>
+      <div class="kpi teal"><div class="label">With a Deal</div><div class="value" id="kpi-with-deal">—</div><div class="sub">excl. Closed Lost only</div></div>
       <div class="kpi blue"><div class="label">Association Rate</div><div class="value" id="kpi-rate">—</div><div class="sub">overall</div></div>
     </div>
     <div class="card">
@@ -92,7 +92,7 @@
     </div>
     <div class="card">
       <h2>How many of each week's contacts got a deal</h2>
-      <div class="desc">Deal association rate for the streams currently selected. Weeks with fewer than 5 contacts are omitted.</div>
+      <div class="desc">Share of contacts with a non–Closed Lost deal. Weeks with fewer than 5 contacts are omitted.</div>
       <div id="rateChart" class="chart-sm"></div>
     </div>
   </div>
@@ -100,17 +100,13 @@
   <div id="section-streams" class="section">
     <div class="kpi-row" id="streamKpis"></div>
     <div class="card">
-      <h2>Conversion rate over time</h2>
-      <div class="desc">Percentage of contacts created each month that later became Customers. Tap the stream pills to focus.</div>
+      <h2>Deal rate over time</h2>
+      <div class="desc">% of contacts created each month who have at least one deal that is not Closed Lost. Tap stream pills to focus.</div>
       <div class="controls">
         <div id="toggles"></div>
-        <div class="mode-btns">
-          <button class="mode-btn active" data-mode="cust">Customer %</button>
-          <button class="mode-btn" data-mode="deal">Has Deal %</button>
-        </div>
       </div>
       <div id="streamChart" class="chart"></div>
-      <div class="note"><strong>Context:</strong> July & August numbers will keep rising as leads mature.</div>
+      <div class="note"><strong>Context:</strong> Recent months will keep rising as more deals are created.</div>
     </div>
     <div class="card">
       <h2>Where the new contacts came from</h2>
@@ -139,7 +135,7 @@
 
     <div class="kpi-row">
       <div class="kpi orange"><div class="label">Contacts in range</div><div class="value" id="kpi-contacts-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
-      <div class="kpi teal"><div class="label">With a deal</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Excludes Closed Lost</div></div>
+      <div class="kpi teal"><div class="label">With a deal</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Excludes Closed Lost only</div></div>
     </div>
 
     <div class="card">
