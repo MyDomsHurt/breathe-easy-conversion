@@ -25,6 +25,7 @@
   <div class="nav">
     <button class="nav-btn active" data-section="weekly">Weekly Contact Flow</button>
     <button class="nav-btn" data-section="streams">Conversion by Stream</button>
+    <button class="nav-btn" data-section="customers">Customer Base</button>
   </div>
 
   <div id="section-weekly" class="section active">
@@ -56,7 +57,7 @@
 
     <div class="card">
       <h2>How many of each week's contacts got a deal</h2>
-      <div class="desc">Deal association rate for the streams currently selected.</div>
+      <div class="desc">Deal association rate for the streams currently selected. Weeks with fewer than 5 contacts are omitted.</div>
       <div id="rateChart" class="chart-sm"></div>
     </div>
   </div>
@@ -88,6 +89,34 @@
       <h2>Numbers at a glance</h2>
       <div style="overflow-x:auto;">
         <table id="dataTable"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="section-customers" class="section">
+    <div class="kpi-row">
+      <div class="kpi orange">
+        <div class="label">Total Customers</div>
+        <div class="value" id="kpi-pie-total">—</div>
+        <div class="sub">Lifecycle = Customer</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Customer base by stream</h2>
+      <div class="desc">How your current customers are split across acquisition streams.</div>
+      <div id="pieChart" class="chart" style="height:420px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Breakdown</h2>
+      <div style="overflow-x:auto;">
+        <table id="pieTable">
+          <thead>
+            <tr><th>Stream</th><th>Customers</th><th>Share</th></tr>
+          </thead>
+          <tbody id="pieTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
