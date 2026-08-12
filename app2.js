@@ -45,21 +45,13 @@ function drawStreamChart() {
     margin: { t: 40, r: 8, b: 40, l: 40 },
     xaxis: {
       tickfont: { size: 12, color: '#8A8178' },
-      showgrid: false,
-      zeroline: false,
-      showline: false,
-      fixedrange: true
+      showgrid: false, zeroline: false, showline: false, fixedrange: true
     },
     yaxis: {
       title: { text: '', font: { size: 11 } },
-      tickfont: { size: 11, color: '#8A8178' },
-      ticksuffix: '%',
+      tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%',
       gridcolor: 'rgba(138,129,120,0.22)',
-      range: [0, 100],
-      dtick: 10,
-      zeroline: false,
-      showline: false,
-      fixedrange: true
+      range: [0, 100], dtick: 10, zeroline: false, showline: false, fixedrange: true
     },
     legend: { orientation: 'h', y: 1.15, font: { size: 12 }, bgcolor: 'rgba(0,0,0,0)' }
   });
@@ -73,8 +65,7 @@ function drawVol() {
     if (!active.has(s)) return;
     traces.push({
       x: S.monthLabels, y: S.streams[s].total, name: s,
-      type: 'bar',
-      marker: { color: COLORS[s], opacity: 0.9 }
+      type: 'bar', marker: { color: COLORS[s], opacity: 0.9 }
     });
   });
   const layout = Object.assign({}, softLayout, {
@@ -82,20 +73,13 @@ function drawVol() {
     margin: { t: 36, r: 8, b: 40, l: 40 },
     xaxis: {
       tickfont: { size: 12, color: '#8A8178' },
-      showgrid: false,
-      zeroline: false,
-      showline: false,
-      fixedrange: true
+      showgrid: false, zeroline: false, showline: false, fixedrange: true
     },
     yaxis: {
       title: { text: '', font: { size: 11 } },
       tickfont: { size: 11, color: '#8A8178' },
-      gridcolor: 'rgba(138,129,120,0.22)',
-      nticks: 8,
-      zeroline: false,
-      showline: false,
-      fixedrange: true,
-      separatethousands: true
+      gridcolor: 'rgba(138,129,120,0.22)', nticks: 8,
+      zeroline: false, showline: false, fixedrange: true, separatethousands: true
     },
     legend: { orientation: 'h', y: 1.15, font: { size: 12 }, bgcolor: 'rgba(0,0,0,0)' }
   });
@@ -124,10 +108,7 @@ function renderTable() {
 }
 
 // Init
-document.getElementById('kpi-total-new').textContent = DATA.weekly.total_new.toLocaleString();
-document.getElementById('kpi-with-deal').textContent = DATA.weekly.total_with_deal.toLocaleString();
-document.getElementById('kpi-rate').textContent = DATA.weekly.overall_rate + '%';
-
+renderWeeklyToggles();
 drawWeekly();
 drawRate();
 renderStreamKPIs();
