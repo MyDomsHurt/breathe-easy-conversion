@@ -113,7 +113,6 @@ function drawWeekly() {
 
 function drawRate() {
   const f = getWeeklyFiltered();
-  // Same treatment for every stream: full x-axis, null when no contacts, no gap-filling
   const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
   const yVals = f.deal_rate.map(r => r);
   const valid = yVals.filter(v => v != null);
@@ -124,7 +123,7 @@ function drawRate() {
     name: 'Deal Rate',
     type: 'scatter',
     mode: 'lines+markers',
-    line: { color: '#E76F51', width: 2.5, shape: 'linear' },
+    line: { color: '#E76F51', width: 2.5, shape: 'spline' },
     marker: { size: 7, color: '#E76F51' },
     fill: 'tozeroy',
     fillcolor: 'rgba(231, 111, 81, 0.09)',
