@@ -94,39 +94,77 @@ function monthKey(d) {
   return y + '-' + m;
 }
 
-function getPieFiltered() {
-  const p = DATA.pie;
+function filterPieSource(source) {
+  if (!source) return { labels: [], values: [], total: 0, startM: null, endM: null };
   const startEl = document.getElementById('pieStart');
   const endEl = document.getElementById('pieEnd');
   let startM = startEl && startEl.value ? monthKey(startEl.value) : null;
   let endM = endEl && endEl.value ? monthKey(endEl.value) : null;
   const counts = {};
-  p.streams.forEach(s => counts[s] = 0);
-  (p.monthly || []).forEach(row => {
+  source.streams.forEach(s => counts[s] = 0);
+  (source.monthly || []).forEach(row => {
     if (startM && row.month < startM) return;
     if (endM && row.month > endM) return;
-    p.streams.forEach(s => { counts[s] += (row.counts && row.counts[s]) || 0; });
+    source.streams.forEach(s => { counts[s] += (row.counts && row.counts[s]) || 0; });
   });
-  const labels = p.streams;
+  const labels = source.streams;
   const values = labels.map(s => counts[s]);
   const total = values.reduce((a, b) => a + b, 0);
   return { labels, values, total, startM, endM };
 }
 
-function drawPie() {
-  if (!document.getElementById('pieChart')) return;
-  const f = getPieFiltered();
-  document.getElementById('kpi-pie-total').textContent = f.total.toLocaleString();
-  const rangeLabel = (f.startM || (DATA.pie.minDate || '').slice(0,7)) + ' → ' + (f.endM || (DATA.pie.maxDate || '').slice(0,7));
-  document.getElementById('kpi-pie-range').textContent = rangeLabel;
+function renderDonut(chartId, f, unitLabel) {
+  if (!document.getElementById(chartId)) return;
   const colors = f.labels.map(l => COLORS[l] || '#B8A99A');
-  const trace = [{ type: 'pie', labels: f.labels, values: f.values, marker: { colors: colors, line: { width: 2, color: '#FDF8F4' } }, textinfo: 'label+percent', textposition: 'outside', textfont: { size: 12, color: '#2D2A26', family: 'Nunito, sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{value:,} customers<br>%{percent}<extra></extra>', hole: 0.45, sort: false, direction: 'clockwise' }];
-  const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: plotFont, margin: { t: 20, r: 20, b: 20, l: 20 }, showlegend: false, annotations: [{ text: '<b>' + f.total.toLocaleString() + '</b><br>customers', showarrow: false, font: { size: 16, color: '#2D2A26', family: 'Nunito, sans-serif' } }] };
-  Plotly.newPlot('pieChart', trace, layout, {responsive: true, displayModeBar: false});
-  const tbody = document.getElementById('pieTableBody');
+  const trace = [{
+    type: 'pie', labels: f.labels, values: f.values,
+    marker: { colors: colors, line: { width: 2, color: '#FDF8F4' } },
+    textinfo: 'label+percent', textposition: 'outside',
+    textfont: { size: 12, color: '#2D2A26', family: 'Nunito, sans-serif' },
+    hovertemplate: '<b>%{label}</b><br>%{value:,} ' + unitLabel + '<br>%{percent}<extra></extra>',
+    hole: 0.45, sort: false, direction: 'clockwise'
+  }];
+  const layout = {
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: plotFont,
+    margin: { t: 20, r: 20, b: 20, l: 20 }, showlegend: false,
+    annotations: [{
+      text: '<b>' + f.total.toLocaleString() + '</b><br>' + unitLabel,
+      showarrow: false,
+      font: { size: 16, color: '#2D2A26', family: 'Nunito, sans-serif' }
+    }]
+  };
+  Plotly.newPlot(chartId, trace, layout, {responsive: true, displayModeBar: false});
+}
+
+function renderPieTable(tbodyId, f) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
   const total = f.total || 1;
-  const rows = f.labels.map((lab, i) => ({ lab, val: f.values[i], pct: (f.values[i] / total * 100) })).sort((a, b) => b.val - a.val);
-  tbody.innerHTML = rows.map(r => `<tr><td><strong style="color:${COLORS[r.lab] || '#8A8178'}">${r.lab}</strong></td><td>${r.val.toLocaleString()}</td><td>${r.pct.toFixed(1)}%</td></tr>`).join('');
+  const rows = f.labels.map((lab, i) => ({ lab, val: f.values[i], pct: (f.values[i] / total * 100) }))
+    .sort((a, b) => b.val - a.val);
+  tbody.innerHTML = rows.map(r =>
+    `<tr><td><strong style="color:${COLORS[r.lab] || '#8A8178'}">${r.lab}</strong></td>` +
+    `<td>${r.val.toLocaleString()}</td><td>${r.pct.toFixed(1)}%</td></tr>`
+  ).join('');
+}
+
+function drawPie() {
+  const cust = filterPieSource(DATA.pie);
+  const cont = filterPieSource(DATA.contactsPie || DATA.pie);
+
+  const rangeLabel = (cust.startM || (DATA.pie.minDate || '').slice(0,7)) + ' → ' + (cust.endM || (DATA.pie.maxDate || '').slice(0,7));
+  const rangeEl = document.getElementById('kpi-pie-range');
+  if (rangeEl) rangeEl.textContent = rangeLabel;
+
+  const kpiCust = document.getElementById('kpi-pie-total');
+  if (kpiCust) kpiCust.textContent = cust.total.toLocaleString();
+  const kpiCont = document.getElementById('kpi-contacts-total');
+  if (kpiCont) kpiCont.textContent = cont.total.toLocaleString();
+
+  renderDonut('contactsPieChart', cont, 'contacts');
+  renderPieTable('contactsPieTableBody', cont);
+  renderDonut('pieChart', cust, 'customers');
+  renderPieTable('pieTableBody', cust);
 }
 
 function setDatePillActive(id) {
