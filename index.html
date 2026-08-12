@@ -5,63 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Breathe Easy · Calm Dashboard</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-  .date-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
-    margin-bottom: 20px;
-  }
-  .date-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .date-field label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    font-weight: 700;
-  }
-  .date-field input[type="date"] {
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-    background: var(--bg-soft);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 14px;
-    outline: none;
-  }
-  .date-field input[type="date"]:focus {
-    border-color: var(--accent);
-  }
-  .date-btn {
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 10px 16px;
-    border-radius: 999px;
-    border: 1.5px solid var(--border);
-    background: var(--bg-soft);
-    color: var(--muted);
-    cursor: pointer;
-  }
-  .date-btn:hover, .date-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
+  .date-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 20px; }
+  .date-field { display: flex; flex-direction: column; gap: 4px; }
+  .date-field label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
+  .date-field input[type="date"] { font-family: inherit; font-size: 0.9rem; font-weight: 600; color: var(--text); background: var(--bg-soft); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; outline: none; }
+  .date-field input[type="date"]:focus { border-color: var(--accent); }
+  .date-btn { font-family: inherit; font-size: 0.82rem; font-weight: 600; padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg-soft); color: var(--muted); cursor: pointer; }
+  .date-btn:hover, .date-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  #auth-gate { display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+  .auth-card { text-align: center; max-width: 400px; width: 100%; }
+  .auth-card .logo-mark { margin-bottom: 20px; }
+  .auth-card h1 { font-size: 1.6rem; margin-bottom: 8px; }
+  .auth-card p { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; font-weight: 500; }
+  #google-btn { display: flex; justify-content: center; margin: 0 auto 16px; }
+  #auth-error { display: none; color: #C45C4A; font-size: 0.88rem; font-weight: 600; margin-top: 16px; line-height: 1.4; }
+  #app-root { display: none; }
+  .auth-bar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+  .auth-bar button { font-family: inherit; font-size: 0.78rem; font-weight: 600; background: transparent; border: none; color: var(--accent); cursor: pointer; padding: 4px 0; }
+  .auth-bar button:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="logo-mark" style="display:inline-flex;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+        <path d="M12 3c.5 2 1.5 3.5 3 4.5-1.5 1-2.5 2.5-3 4.5-.5-2-1.5-3.5-3-4.5 1.5-1 2.5-2.5 3-4.5z"/>
+        <path d="M12 12c.4 1.6 1.2 2.8 2.4 3.6-1.2.8-2 2-2.4 3.6-.4-1.6-1.2-2.8-2.4-3.6 1.2-.8 2-2 2.4-3.6z"/>
+      </svg>
+    </div>
+    <h1>Breathe <span style="color:var(--accent)">Easy</span></h1>
+    <p>Sign in with your Google account to view the dashboard.</p>
+    <div id="google-btn"></div>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<div id="app-root">
 <div class="container">
+  <div class="auth-bar">
+    <span id="auth-user"></span>
+    <button type="button" onclick="beSignOut()">Sign out</button>
+  </div>
+
   <header>
     <div class="logo-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -81,21 +73,9 @@
 
   <div id="section-weekly" class="section active">
     <div class="kpi-row">
-      <div class="kpi orange">
-        <div class="label">New Contacts</div>
-        <div class="value" id="kpi-total-new">—</div>
-        <div class="sub">Selected streams · 90d</div>
-      </div>
-      <div class="kpi teal">
-        <div class="label">With a Deal</div>
-        <div class="value" id="kpi-with-deal">—</div>
-        <div class="sub">of those new contacts</div>
-      </div>
-      <div class="kpi blue">
-        <div class="label">Association Rate</div>
-        <div class="value" id="kpi-rate">—</div>
-        <div class="sub">overall</div>
-      </div>
+      <div class="kpi orange"><div class="label">New Contacts</div><div class="value" id="kpi-total-new">—</div><div class="sub">Selected streams · 90d</div></div>
+      <div class="kpi teal"><div class="label">With a Deal</div><div class="value" id="kpi-with-deal">—</div><div class="sub">of those new contacts</div></div>
+      <div class="kpi blue"><div class="label">Association Rate</div><div class="value" id="kpi-rate">—</div><div class="sub">overall</div></div>
     </div>
     <div class="card">
       <h2>New contacts each week</h2>
@@ -133,9 +113,7 @@
     </div>
     <div class="card">
       <h2>Numbers at a glance</h2>
-      <div style="overflow-x:auto;">
-        <table id="dataTable"><thead></thead><tbody></tbody></table>
-      </div>
+      <div style="overflow-x:auto;"><table id="dataTable"><thead></thead><tbody></tbody></table></div>
     </div>
   </div>
 
@@ -144,52 +122,45 @@
       <h2>Date range</h2>
       <div class="desc">Only customers whose contact was created in this window are included.</div>
       <div class="date-row">
-        <div class="date-field">
-          <label>From</label>
-          <input type="date" id="pieStart" />
-        </div>
-        <div class="date-field">
-          <label>To</label>
-          <input type="date" id="pieEnd" />
-        </div>
+        <div class="date-field"><label>From</label><input type="date" id="pieStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="pieEnd" /></div>
         <button class="date-btn" id="pieApply">Apply</button>
         <button class="date-btn" id="pieAll">All time</button>
         <button class="date-btn" id="pie90">Last 90 days</button>
         <button class="date-btn" id="pieYTD">2026 YTD</button>
       </div>
     </div>
-
     <div class="kpi-row">
-      <div class="kpi orange">
-        <div class="label">Customers in range</div>
-        <div class="value" id="kpi-pie-total">—</div>
-        <div class="sub" id="kpi-pie-range">—</div>
-      </div>
+      <div class="kpi orange"><div class="label">Customers in range</div><div class="value" id="kpi-pie-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
     </div>
-
     <div class="card">
       <h2>Customer base by stream</h2>
       <div class="desc">How customers created in the selected period are split across streams.</div>
       <div id="pieChart" class="chart" style="height:420px;"></div>
     </div>
-
     <div class="card">
       <h2>Breakdown</h2>
       <div style="overflow-x:auto;">
-        <table id="pieTable">
-          <thead>
-            <tr><th>Stream</th><th>Customers</th><th>Share</th></tr>
-          </thead>
-          <tbody id="pieTableBody"></tbody>
-        </table>
+        <table id="pieTable"><thead><tr><th>Stream</th><th>Customers</th><th>Share</th></tr></thead><tbody id="pieTableBody"></tbody></table>
       </div>
     </div>
   </div>
 
 </div>
+</div>
 
+<script src="auth.js"></script>
 <script src="data.js"></script>
 <script src="app1.js"></script>
 <script src="app2.js"></script>
+<script>
+  window.addEventListener('auth-ready', function () {
+    if (typeof drawWeekly === 'function') {
+      try { drawWeekly(); drawRate(); } catch (e) {}
+      try { drawStreamChart(); drawVol(); } catch (e) {}
+      try { if (typeof initPieDates === 'function') initPieDates(); if (typeof drawPie === 'function') drawPie(); } catch (e) {}
+    }
+  });
+</script>
 </body>
 </html>
