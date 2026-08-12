@@ -1,5 +1,6 @@
 function renderToggles() {
   const el = document.getElementById('toggles');
+  if (!el) return;
   el.innerHTML = streamOrder.map(s => {
     const on = active.has(s);
     return `<label class="toggle ${on ? 'active' : ''}">
@@ -18,21 +19,12 @@ function renderToggles() {
   });
 }
 
-document.querySelectorAll('.mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    mode = btn.dataset.mode;
-    drawStreamChart();
-  });
-});
-
 function drawStreamChart() {
   const S = DATA.stream;
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    const rates = mode === 'cust' ? S.streams[s].cust_rate : S.streams[s].deal_rate;
+    const rates = S.streams[s].deal_rate;
     traces.push({
       x: S.monthLabels, y: rates, name: s,
       type: 'scatter', mode: 'lines+markers',
@@ -73,7 +65,7 @@ function renderTable() {
   thead.innerHTML = '<tr><th>Stream</th>' + S.monthLabels.map(m => `<th>${m}</th>`).join('') + '<th>Mar–Jul Avg</th></tr>';
   let rows = '';
   streamOrder.forEach(s => {
-    const rates = S.streams[s].cust_rate;
+    const rates = S.streams[s].deal_rate;
     const totals = S.streams[s].total;
     let cells = rates.map((r, i) => {
       const vol = totals[i];
