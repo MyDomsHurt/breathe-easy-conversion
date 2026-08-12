@@ -12,7 +12,6 @@ const COLORS = {
 const streamOrder = ['Referral', 'Affiliate', 'Website', 'Facebook', 'Instagram', 'Meta Ads', 'Unspecified'];
 let active = new Set(streamOrder);
 let weeklyActive = new Set(streamOrder);
-let mode = 'deal';
 
 const plotFont = { family: 'Nunito, sans-serif', color: '#2D2A26', size: 13 };
 const softLayout = {
@@ -23,6 +22,73 @@ const softLayout = {
   hovermode: 'x unified'
 };
 
+const MIN_DATE = DATA.minDate || (DATA.pie && DATA.pie.minDate) || '2025-09-18';
+const MAX_DATE = DATA.maxDate || (DATA.pie && DATA.pie.maxDate) || '2026-08-12';
+
+function monthKey(d) {
+  if (!d) return null;
+  if (typeof d === 'string') return d.slice(0, 7);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return y + '-' + m;
+}
+
+function setPillActive(scope, id) {
+  document.querySelectorAll('.date-row[data-scope="' + scope + '"] .date-btn').forEach(b => b.classList.remove('active'));
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+}
+
+function wireDatePicker(prefix, scope, onChange, defaultMode) {
+  const startEl = document.getElementById(prefix + 'Start');
+  const endEl = document.getElementById(prefix + 'End');
+  if (!startEl || !endEl) return;
+  startEl.min = MIN_DATE; startEl.max = MAX_DATE;
+  endEl.min = MIN_DATE; endEl.max = MAX_DATE;
+
+  function applyPreset(mode) {
+    if (mode === 'all') {
+      startEl.value = MIN_DATE; endEl.value = MAX_DATE;
+      setPillActive(scope, prefix + 'All');
+    } else if (mode === '90') {
+      const end = new Date(MAX_DATE);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 90);
+      startEl.value = start.toISOString().slice(0, 10);
+      endEl.value = MAX_DATE;
+      setPillActive(scope, prefix + '90');
+    } else if (mode === 'ytd') {
+      startEl.value = '2026-01-01';
+      endEl.value = MAX_DATE;
+      setPillActive(scope, prefix + 'YTD');
+    }
+    onChange();
+  }
+
+  document.getElementById(prefix + 'Apply').addEventListener('click', () => {
+    setPillActive(scope, prefix + 'Apply');
+    onChange();
+  });
+  document.getElementById(prefix + 'All').addEventListener('click', () => applyPreset('all'));
+  document.getElementById(prefix + '90').addEventListener('click', () => applyPreset('90'));
+  document.getElementById(prefix + 'YTD').addEventListener('click', () => applyPreset('ytd'));
+  startEl.addEventListener('change', () => setPillActive(scope, null));
+  endEl.addEventListener('change', () => setPillActive(scope, null));
+
+  applyPreset(defaultMode || 'all');
+}
+
+function initAllDatePickers() {
+  wireDatePicker('weekly', 'weekly', function () { drawWeekly(); drawRate(); }, '90');
+  wireDatePicker('stream', 'stream', function () {
+    drawStreamChart(); drawVol(); renderTable(); renderStreamKPIs();
+  }, 'all');
+  wireDatePicker('pie', 'pie', function () { drawPie(); }, 'all');
+}
+window.initAllDatePickers = initAllDatePickers;
+
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -32,37 +98,63 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     if (btn.dataset.section === 'weekly') {
       drawWeekly(); drawRate();
     } else if (btn.dataset.section === 'streams') {
-      drawStreamChart(); drawVol();
+      drawStreamChart(); drawVol(); renderTable(); renderStreamKPIs();
     } else if (btn.dataset.section === 'customers') {
       drawPie();
     }
   });
 });
 
+function getWeeklyDateBounds() {
+  const startEl = document.getElementById('weeklyStart');
+  const endEl = document.getElementById('weeklyEnd');
+  return {
+    start: startEl && startEl.value ? startEl.value : MIN_DATE,
+    end: endEl && endEl.value ? endEl.value : MAX_DATE
+  };
+}
+
+function getStreamMonthBounds() {
+  const startEl = document.getElementById('streamStart');
+  const endEl = document.getElementById('streamEnd');
+  return {
+    startM: monthKey(startEl && startEl.value ? startEl.value : MIN_DATE),
+    endM: monthKey(endEl && endEl.value ? endEl.value : MAX_DATE)
+  };
+}
+
 function getWeeklyFiltered() {
   const w = DATA.weekly;
-  const n = w.labels.length;
+  const bounds = getWeeklyDateBounds();
+  const indices = [];
+  for (let i = 0; i < w.weekStarts.length; i++) {
+    const ws = w.weekStarts[i];
+    if (ws >= bounds.start && ws <= bounds.end) indices.push(i);
+  }
+  const labels = indices.map(i => w.labels[i]);
+  const n = indices.length;
   const newC = new Array(n).fill(0);
   const withD = new Array(n).fill(0);
   weeklyActive.forEach(s => {
     const st = w.by_stream[s];
     if (!st) return;
-    for (let i = 0; i < n; i++) {
-      newC[i] += st.new_contacts[i] || 0;
-      withD[i] += st.with_deal[i] || 0;
-    }
+    indices.forEach((srcIdx, j) => {
+      newC[j] += st.new_contacts[srcIdx] || 0;
+      withD[j] += st.with_deal[srcIdx] || 0;
+    });
   });
   const rates = newC.map((c, i) => c >= 5 ? Math.round(withD[i] / c * 1000) / 10 : null);
-  const totalNew = newC.reduce((a,b) => a+b, 0);
-  const totalDeal = withD.reduce((a,b) => a+b, 0);
+  const totalNew = newC.reduce((a, b) => a + b, 0);
+  const totalDeal = withD.reduce((a, b) => a + b, 0);
   return {
-    labels: w.labels,
+    labels,
     new_contacts: newC,
     with_deal: withD,
     deal_rate: rates,
     total_new: totalNew,
     total_with_deal: totalDeal,
-    overall_rate: totalNew > 0 ? Math.round(totalDeal / totalNew * 1000) / 10 : 0
+    overall_rate: totalNew > 0 ? Math.round(totalDeal / totalNew * 1000) / 10 : 0,
+    rangeLabel: bounds.start.slice(0, 7) + ' → ' + bounds.end.slice(0, 7)
   };
 }
 
@@ -70,12 +162,19 @@ function updateWeeklyKPIs(f) {
   document.getElementById('kpi-total-new').textContent = f.total_new.toLocaleString();
   document.getElementById('kpi-with-deal').textContent = f.total_with_deal.toLocaleString();
   document.getElementById('kpi-rate').textContent = f.overall_rate + '%';
+  const rangeEl = document.getElementById('kpi-weekly-range');
+  if (rangeEl) rangeEl.textContent = f.rangeLabel || 'Selected streams';
 }
 
 function drawWeekly() {
   const f = getWeeklyFiltered();
   updateWeeklyKPIs(f);
-  const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
+  if (!f.labels.length) {
+    Plotly.newPlot('weeklyChart', [], Object.assign({}, softLayout, { annotations: [{ text: 'No weeks in range', showarrow: false }] }), {responsive: true, displayModeBar: false});
+    return;
+  }
+  const step = f.labels.length > 20 ? 3 : (f.labels.length > 12 ? 2 : 1);
+  const ticktext = f.labels.map((lab, i) => (i % step === 0 ? lab : ''));
   const traces = [
     {
       x: f.labels, y: f.new_contacts, name: 'New Contacts',
@@ -115,15 +214,20 @@ function drawWeekly() {
 
 function drawRate() {
   const f = getWeeklyFiltered();
-  const ticktext = f.labels.map((lab, i) => (i % 2 === 0 ? lab : ''));
+  if (!f.labels.length) {
+    Plotly.newPlot('rateChart', [], Object.assign({}, softLayout, { annotations: [{ text: 'No weeks in range', showarrow: false }] }), {responsive: true, displayModeBar: false});
+    return;
+  }
+  const step = f.labels.length > 20 ? 3 : (f.labels.length > 12 ? 2 : 1);
+  const ticktext = f.labels.map((lab, i) => (i % step === 0 ? lab : ''));
   const yVals = f.deal_rate.map(r => r);
   const valid = yVals.filter(v => v != null);
   const peak = valid.length ? Math.max(...valid) : 0;
-  let maxY, step;
-  if (peak <= 25) { maxY = 30; step = 5; }
-  else if (peak <= 50) { maxY = Math.ceil(peak / 10) * 10 + 10; step = 10; }
-  else if (peak <= 80) { maxY = Math.ceil(peak / 20) * 20 + 20; step = 20; }
-  else { maxY = 100; step = 25; }
+  let maxY, dt;
+  if (peak <= 25) { maxY = 30; dt = 5; }
+  else if (peak <= 50) { maxY = Math.ceil(peak / 10) * 10 + 10; dt = 10; }
+  else if (peak <= 80) { maxY = Math.ceil(peak / 20) * 20 + 20; dt = 20; }
+  else { maxY = 100; dt = 25; }
   const trace = [{
     x: f.labels, y: yVals, name: 'Deal Rate',
     type: 'scatter', mode: 'lines+markers',
@@ -144,7 +248,7 @@ function drawRate() {
       title: { text: '', font: { size: 11 } },
       tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%',
       gridcolor: 'rgba(138,129,120,0.22)',
-      zeroline: false, showline: false, range: [0, maxY], dtick: step, fixedrange: true
+      zeroline: false, showline: false, range: [0, maxY], dtick: dt, fixedrange: true
     },
     showlegend: false
   });
@@ -172,13 +276,36 @@ function renderWeeklyToggles() {
   });
 }
 
+function getStreamFilteredIndices() {
+  const S = DATA.stream;
+  const b = getStreamMonthBounds();
+  const indices = [];
+  for (let i = 0; i < S.months.length; i++) {
+    const m = S.months[i];
+    if (m >= b.startM && m <= b.endM) indices.push(i);
+  }
+  return indices;
+}
+
 function renderStreamKPIs() {
   const row = document.getElementById('streamKpis');
+  if (!row) return;
+  const S = DATA.stream;
+  const indices = getStreamFilteredIndices();
   const order = ['Referral', 'Affiliate', 'Website', 'Instagram', 'Meta Ads', 'Unspecified'];
-  row.innerHTML = order.map(s => `
-    <div class="kpi">
+  row.innerHTML = order.map(s => {
+    let total = 0, deals = 0;
+    indices.forEach(i => {
+      total += S.streams[s].total[i] || 0;
+      deals += S.streams[s].with_deal[i] || 0;
+    });
+    const rate = total > 0 ? Math.round(deals / total * 1000) / 10 : null;
+    return `<div class="kpi">
       <div class="label">${s}</div>
-      <div class="value" style="color:${COLORS[s]}">${DATA.stream.kpi[s] != null ? DATA.stream.kpi[s] + '%' : '—'}</div>
-      <div class="sub">Mar–Jul deal rate</div>
-    </div>`).join('');
+      <div class="value" style="color:${COLORS[s]}">${rate != null ? rate + '%' : '—'}</div>
+      <div class="sub">Deal rate in range</div>
+    </div>`;
+  }).join('');
 }
+
+renderWeeklyToggles();
