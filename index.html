@@ -78,8 +78,20 @@
   </div>
 
   <div id="section-weekly" class="section active">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Based on contact create date.</div>
+      <div class="date-row" data-scope="weekly">
+        <div class="date-field"><label>From</label><input type="date" id="weeklyStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="weeklyEnd" /></div>
+        <button class="date-btn" id="weeklyApply">Apply</button>
+        <button class="date-btn" id="weeklyAll">All time</button>
+        <button class="date-btn active" id="weekly90">Last 90 days</button>
+        <button class="date-btn" id="weeklyYTD">2026 YTD</button>
+      </div>
+    </div>
     <div class="kpi-row">
-      <div class="kpi orange"><div class="label">New Contacts</div><div class="value" id="kpi-total-new">—</div><div class="sub">Selected streams · 90d</div></div>
+      <div class="kpi orange"><div class="label">New Contacts</div><div class="value" id="kpi-total-new">—</div><div class="sub" id="kpi-weekly-range">Selected streams</div></div>
       <div class="kpi teal"><div class="label">With a Deal</div><div class="value" id="kpi-with-deal">—</div><div class="sub">excl. Closed Lost only</div></div>
       <div class="kpi blue"><div class="label">Association Rate</div><div class="value" id="kpi-rate">—</div><div class="sub">overall</div></div>
     </div>
@@ -98,6 +110,18 @@
   </div>
 
   <div id="section-streams" class="section">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Based on contact create month.</div>
+      <div class="date-row" data-scope="stream">
+        <div class="date-field"><label>From</label><input type="date" id="streamStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="streamEnd" /></div>
+        <button class="date-btn" id="streamApply">Apply</button>
+        <button class="date-btn active" id="streamAll">All time</button>
+        <button class="date-btn" id="stream90">Last 90 days</button>
+        <button class="date-btn" id="streamYTD">2026 YTD</button>
+      </div>
+    </div>
     <div class="kpi-row" id="streamKpis"></div>
     <div class="card">
       <h2>Deal rate over time</h2>
@@ -123,7 +147,7 @@
     <div class="card" style="padding-bottom: 8px;">
       <h2>Date range</h2>
       <div class="desc">Applies to both pies — based on contact create date.</div>
-      <div class="date-row">
+      <div class="date-row" data-scope="pie">
         <div class="date-field"><label>From</label><input type="date" id="pieStart" /></div>
         <div class="date-field"><label>To</label><input type="date" id="pieEnd" /></div>
         <button class="date-btn" id="pieApply">Apply</button>
@@ -172,10 +196,11 @@
 <script src="auth.js"></script>
 <script>
   window.addEventListener('auth-ready', function () {
+    if (typeof initAllDatePickers === 'function') initAllDatePickers();
     if (typeof drawWeekly === 'function') {
-      try { drawWeekly(); drawRate(); } catch (e) {}
-      try { drawStreamChart(); drawVol(); } catch (e) {}
-      try { if (typeof initPieDates === 'function') initPieDates(); if (typeof drawPie === 'function') drawPie(); } catch (e) {}
+      try { drawWeekly(); drawRate(); } catch (e) { console.error(e); }
+      try { drawStreamChart(); drawVol(); renderTable(); renderStreamKPIs(); } catch (e) { console.error(e); }
+      try { if (typeof drawPie === 'function') drawPie(); } catch (e) { console.error(e); }
     }
   });
 </script>
