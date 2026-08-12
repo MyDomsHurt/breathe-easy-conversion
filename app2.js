@@ -149,22 +149,22 @@ function renderPieTable(tbodyId, f) {
 }
 
 function drawPie() {
-  const cust = filterPieSource(DATA.pie);
+  const withDeal = filterPieSource(DATA.pie);
   const cont = filterPieSource(DATA.contactsPie || DATA.pie);
 
-  const rangeLabel = (cust.startM || (DATA.pie.minDate || '').slice(0,7)) + ' → ' + (cust.endM || (DATA.pie.maxDate || '').slice(0,7));
+  const rangeLabel = (withDeal.startM || (DATA.pie.minDate || '').slice(0,7)) + ' → ' + (withDeal.endM || (DATA.pie.maxDate || '').slice(0,7));
   const rangeEl = document.getElementById('kpi-pie-range');
   if (rangeEl) rangeEl.textContent = rangeLabel;
 
-  const kpiCust = document.getElementById('kpi-pie-total');
-  if (kpiCust) kpiCust.textContent = cust.total.toLocaleString();
+  const kpiDeal = document.getElementById('kpi-pie-total');
+  if (kpiDeal) kpiDeal.textContent = withDeal.total.toLocaleString();
   const kpiCont = document.getElementById('kpi-contacts-total');
   if (kpiCont) kpiCont.textContent = cont.total.toLocaleString();
 
   renderDonut('contactsPieChart', cont, 'contacts');
   renderPieTable('contactsPieTableBody', cont);
-  renderDonut('pieChart', cust, 'customers');
-  renderPieTable('pieTableBody', cust);
+  renderDonut('pieChart', withDeal, 'with a deal');
+  renderPieTable('pieTableBody', withDeal);
 }
 
 function setDatePillActive(id) {
