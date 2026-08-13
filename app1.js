@@ -299,10 +299,9 @@ function renderStreamKPIs() {
       total += S.streams[s].total[i] || 0;
       deals += S.streams[s].with_deal[i] || 0;
     });
-    const rate = total > 0 ? Math.round(deals / total * 1000) / 10 : null;
     return `<div class="kpi">
       <div class="label">${s}</div>
-      <div class="value" style="color:${COLORS[s]}">${rate != null ? rate + '%' : '—'}</div>
+      <div class="value" style="color:${COLORS[s]}">${deals.toLocaleString()}</div>
       <div class="sub">${total.toLocaleString()} contacts</div>
     </div>`;
   }).join('');
