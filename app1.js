@@ -22,21 +22,27 @@ function monthName(yyyyMm) { return MONTH_NAMES[parseInt(yyyyMm.slice(5, 7), 10)
 function fullMonthLabel(yyyyMm) { return monthName(yyyyMm) + ' ' + yyyyMm.slice(0, 4); }
 function monthDate(yyyyMm) { return yyyyMm + '-01'; }
 
-/** Real date axis — same idea as Excel / Stripe / GA. Plotly picks tick spacing; format follows the span. */
-function dateAxis(kind) {
-  const weekly = kind === 'week';
+function dateTickText(dates) {
+  const years = new Set(dates.map(d => d.slice(0, 4)));
+  return dates.map((d, i) => {
+    const lab = parseInt(d.slice(8, 10), 10) + ' ' + monthName(d.slice(0, 7));
+    if (years.size > 1 && (i === 0 || d.slice(0, 4) !== dates[i - 1].slice(0, 4))) return lab + ' ' + d.slice(0, 4);
+    return lab;
+  });
+}
+
+function dateAxis(dates) {
+  const n = dates.length;
+  const step = n > 12 ? Math.ceil(n / 12) : 1;
+  const tickvals = dates.filter((_, i) => i % step === 0 || i === n - 1);
   return {
     type: 'date',
-    tickfont: { size: weekly ? 11 : 12, color: '#8A8178' },
+    tickmode: 'array',
+    tickvals,
+    ticktext: dateTickText(tickvals),
+    tickfont: { size: 11, color: '#8A8178' },
     showgrid: false, zeroline: false, showline: false, fixedrange: true, automargin: true,
-    hoverformat: weekly ? '%d %b %Y' : '%b %Y',
-    tickformatstops: weekly ? [
-      { dtickrange: [null, 86400000 * 60], value: '%d %b' },
-      { dtickrange: [86400000 * 60, null], value: '%b %Y' }
-    ] : [
-      { dtickrange: [null, 'M8'], value: '%b %Y' },
-      { dtickrange: ['M8', null], value: '%b %Y' }
-    ]
+    hoverformat: '%d %b %Y'
   };
 }
 
@@ -141,7 +147,7 @@ function drawWeekly() {
   ];
   const layout = Object.assign({}, softLayout, {
     margin:{t:40,r:8,b:40,l:40},
-    xaxis: dateAxis('week'),
+    xaxis: dateAxis(x),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',zeroline:false,showline:false,fixedrange:true,nticks:6,separatethousands:true},
     legend:{orientation:'h',y:1.15,x:0,xanchor:'left',font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   });
@@ -158,7 +164,7 @@ function drawRate() {
   else if (peak <= 80) { maxY=Math.ceil(peak/20)*20+20; dt=20; } else { maxY=100; dt=25; }
   const layout = Object.assign({}, softLayout, {
     margin:{t:16,r:8,b:36,l:40},
-    xaxis: dateAxis('week'),
+    xaxis: dateAxis(x),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},ticksuffix:'%',gridcolor:'rgba(138,129,120,0.22)',zeroline:false,showline:false,range:[0,maxY],dtick:dt,fixedrange:true},
     showlegend:false
   });

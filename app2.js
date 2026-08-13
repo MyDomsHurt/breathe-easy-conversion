@@ -11,12 +11,12 @@ function drawStreamChart() {
       x, y:indices.map(i => S.streams[s].with_deal[i]||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
-      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%b %Y}: %{y:,} deals<extra></extra>'
+      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%d %b %Y}: %{y:,} deals<extra></extra>'
     });
   });
   Plotly.newPlot('streamChart', traces, Object.assign({}, softLayout, {
     margin:{t:40,r:8,b:40,l:40},
-    xaxis: dateAxis('month'),
+    xaxis: dateAxis(x),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',nticks:6,zeroline:false,showline:false,fixedrange:true,separatethousands:true},
     legend:{orientation:'h',y:1.15,font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   }), {responsive:true,displayModeBar:false});
@@ -31,12 +31,12 @@ function drawVol() {
       x, y:indices.map(i => S.streams[s].revenue[i]||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
-      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%b %Y}: HK$%{y:,}<extra></extra>'
+      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%d %b %Y}: HK$%{y:,}<extra></extra>'
     });
   });
   Plotly.newPlot('volChart', traces, Object.assign({}, softLayout, {
     margin:{t:36,r:8,b:40,l:40},
-    xaxis: dateAxis('month'),
+    xaxis: dateAxis(x),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',nticks:6,zeroline:false,showline:false,fixedrange:true,separatethousands:true},
     legend:{orientation:'h',y:1.15,font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   }), {responsive:true,displayModeBar:false});
