@@ -292,7 +292,7 @@ function renderStreamKPIs() {
   if (!row) return;
   const S = DATA.stream;
   const indices = getStreamFilteredIndices();
-  const order = ['Referral', 'Affiliate', 'Website', 'Instagram', 'Meta Ads', 'Unspecified'];
+  const order = ['Referral', 'Affiliate', 'Website', 'Facebook', 'Instagram', 'Meta Ads', 'Unspecified'];
   row.innerHTML = order.map(s => {
     let total = 0, deals = 0;
     indices.forEach(i => {
@@ -303,7 +303,7 @@ function renderStreamKPIs() {
     return `<div class="kpi">
       <div class="label">${s}</div>
       <div class="value" style="color:${COLORS[s]}">${rate != null ? rate + '%' : '—'}</div>
-      <div class="sub">Deal rate in range</div>
+      <div class="sub">${total.toLocaleString()} contacts</div>
     </div>`;
   }).join('');
 }
