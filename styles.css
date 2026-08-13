@@ -43,13 +43,13 @@
   .logo-mark {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #FF7A45, #FF9A6C);
+    background: linear-gradient(135deg, #6B9AC4, #8FB4D6);
     border-radius: 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 16px;
-    box-shadow: 0 6px 20px rgba(255, 122, 69, 0.25);
+    box-shadow: 0 6px 20px rgba(107, 154, 196, 0.35);
   }
   .logo-mark svg { width: 26px; height: 26px; }
   h1 {

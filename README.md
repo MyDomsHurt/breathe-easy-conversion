@@ -1,4 +1,4 @@
-# Breathe Easy — Conversion Dashboard
+# Breathe-Easy — Conversion Dashboard
 
 Calm interactive view of HubSpot contact velocity and deal association by acquisition stream.
 
