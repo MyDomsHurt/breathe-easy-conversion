@@ -111,6 +111,19 @@ function getStreamMonthBounds() {
   return { startM: monthKey(s && s.value ? s.value : MIN_DATE), endM: monthKey(e && e.value ? e.value : MAX_DATE) };
 }
 
+function getStreamDateBounds() {
+  const s = document.getElementById('streamStart'), e = document.getElementById('streamEnd');
+  return { start: s && s.value ? s.value : MIN_DATE, end: e && e.value ? e.value : MAX_DATE };
+}
+
+function getStreamWeeklyFiltered() {
+  const w = DATA.weekly, bounds = getStreamDateBounds(), indices = [];
+  for (let i = 0; i < w.weekStarts.length; i++) {
+    if (w.weekStarts[i] >= bounds.start && w.weekStarts[i] <= bounds.end) indices.push(i);
+  }
+  return { weekStarts: indices.map(i => w.weekStarts[i]), indices };
+}
+
 function getWeeklyFiltered() {
   const w = DATA.weekly, bounds = getWeeklyDateBounds(), indices = [];
   for (let i = 0; i < w.weekStarts.length; i++) {

@@ -3,12 +3,13 @@ function renderToggles() {
 }
 
 function drawStreamChart() {
-  const S = DATA.stream, indices = getStreamFilteredIndices();
-  const x = indices.map(i => monthDate(S.months[i])), traces = [];
+  const f = getStreamWeeklyFiltered(), w = DATA.weekly, x = f.weekStarts, traces = [];
+  if (!x.length) { Plotly.newPlot('streamChart', [], Object.assign({}, softLayout, {annotations:[{text:'No weeks in range',showarrow:false}]}), {responsive:true,displayModeBar:false}); return; }
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
+    const st = w.by_stream[s]; if (!st) return;
     traces.push({
-      x, y:indices.map(i => S.streams[s].with_deal[i]||0), name:s,
+      x, y:f.indices.map(i => st.with_deal[i]||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
       hovertemplate:'<b>%{fullData.name}</b><br>%{x|%d %b %Y}: %{y:,} deals<extra></extra>'
@@ -23,12 +24,13 @@ function drawStreamChart() {
 }
 
 function drawVol() {
-  const S = DATA.stream, indices = getStreamFilteredIndices();
-  const x = indices.map(i => monthDate(S.months[i])), traces = [];
+  const f = getStreamWeeklyFiltered(), w = DATA.weekly, x = f.weekStarts, traces = [];
+  if (!x.length) { Plotly.newPlot('volChart', [], Object.assign({}, softLayout, {annotations:[{text:'No weeks in range',showarrow:false}]}), {responsive:true,displayModeBar:false}); return; }
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
+    const st = w.by_stream[s]; if (!st) return;
     traces.push({
-      x, y:indices.map(i => S.streams[s].revenue[i]||0), name:s,
+      x, y:f.indices.map(i => (st.revenue && st.revenue[i])||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
       hovertemplate:'<b>%{fullData.name}</b><br>%{x|%d %b %Y}: HK$%{y:,}<extra></extra>'

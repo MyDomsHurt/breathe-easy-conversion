@@ -90,7 +90,7 @@
   <div id="section-streams" class="section">
     <div class="card" style="padding-bottom: 8px;">
       <h2>Date range</h2>
-      <div class="desc">Based on contact create month.</div>
+      <div class="desc">Based on contact create date.</div>
       <div class="date-row" data-scope="stream">
         <div class="date-field"><label>From</label><input type="date" id="streamStart" /></div>
         <div class="date-field"><label>To</label><input type="date" id="streamEnd" /></div>
@@ -103,14 +103,14 @@
     <div class="kpi-row" id="streamKpis"></div>
     <div class="card">
       <h2>Deal volume by stream</h2>
-      <div class="desc">Number of contacts created each month who have at least one deal that is not Closed Lost. Tap stream pills to focus.</div>
+      <div class="desc">Number of contacts created each week who have at least one deal that is not Closed Lost. Tap stream pills to focus.</div>
       <div class="controls"><div id="toggles"></div></div>
       <div id="streamChart" class="chart"></div>
-      <div class="note"><strong>Note:</strong> Counts contacts with a non–Closed Lost deal, by the month the contact was created.</div>
+      <div class="note"><strong>Note:</strong> Counts contacts with a non–Closed Lost deal, by the week the contact was created.</div>
     </div>
     <div class="card">
       <h2>Revenue by stream</h2>
-      <div class="desc">Non–Closed Lost deal amount (HKD), by the month the contact was created. Same date range and stream pills as above.</div>
+      <div class="desc">Non–Closed Lost deal amount (HKD), by the week the contact was created. Same date range and stream pills as above.</div>
       <div id="volChart" class="chart-sm"></div>
     </div>
     <div class="card">
@@ -163,8 +163,8 @@
 </div>
 
 <script src="data.js?v=20260813b"></script>
-<script src="app1.js?v=20260813g"></script>
-<script src="app2.js?v=20260813g"></script>
+<script src="app1.js?v=20260813h"></script>
+<script src="app2.js?v=20260813h"></script>
 <script src="auth.js?v=20260813"></script>
 <script>
   window.addEventListener('auth-ready', function () {
