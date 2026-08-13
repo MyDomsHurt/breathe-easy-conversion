@@ -26,12 +26,18 @@ function drawStreamChart() {
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    const rates = indices.map(i => S.streams[s].deal_rate[i]);
+    // Suppress rates when volume is too low to be meaningful (same rule as weekly chart)
+    const rates = indices.map(i => {
+      const vol = S.streams[s].total[i] || 0;
+      const r = S.streams[s].deal_rate[i];
+      return (vol >= 5 && r != null) ? r : null;
+    });
     traces.push({
       x: labels, y: rates, name: s,
       type: 'scatter', mode: 'lines+markers',
-      line: { color: COLORS[s], width: 2.6, shape: 'spline' },
-      marker: { size: 6 },
+      line: { color: COLORS[s], width: 2.4, shape: 'linear' },
+      marker: { size: 7, color: COLORS[s] },
+      connectgaps: false,
       hovertemplate: '<b>%{fullData.name}</b><br>%{x}: %{y:.0f}%<extra></extra>'
     });
   });
