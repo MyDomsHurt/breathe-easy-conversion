@@ -26,25 +26,28 @@ function drawStreamChart() {
   const traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
-    // Suppress rates when volume is too low to be meaningful (same rule as weekly chart)
-    const rates = indices.map(i => {
-      const vol = S.streams[s].total[i] || 0;
-      const r = S.streams[s].deal_rate[i];
-      return (vol >= 5 && r != null) ? r : null;
-    });
+    const deals = indices.map(i => S.streams[s].with_deal[i] || 0);
     traces.push({
-      x: labels, y: rates, name: s,
-      type: 'scatter', mode: 'lines+markers',
-      line: { color: COLORS[s], width: 2.4, shape: 'linear' },
-      marker: { size: 7, color: COLORS[s] },
-      connectgaps: false,
-      hovertemplate: '<b>%{fullData.name}</b><br>%{x}: %{y:.0f}%<extra></extra>'
+      x: labels, y: deals, name: s,
+      type: 'bar',
+      marker: { color: COLORS[s], opacity: 0.9 },
+      hovertemplate: '<b>%{fullData.name}</b><br>%{x}: %{y:,} deals<extra></extra>'
     });
   });
   const layout = Object.assign({}, softLayout, {
+    barmode: 'group',
     margin: { t: 40, r: 8, b: 40, l: 40 },
     xaxis: { tickfont: { size: 12, color: '#8A8178' }, showgrid: false, zeroline: false, showline: false, fixedrange: true },
-    yaxis: { title: { text: '', font: { size: 11 } }, tickfont: { size: 11, color: '#8A8178' }, ticksuffix: '%', gridcolor: 'rgba(138,129,120,0.22)', range: [0, 100], dtick: 10, zeroline: false, showline: false, fixedrange: true },
+    yaxis: {
+      title: { text: '', font: { size: 11 } },
+      tickfont: { size: 11, color: '#8A8178' },
+      gridcolor: 'rgba(138,129,120,0.22)',
+      nticks: 6,
+      zeroline: false,
+      showline: false,
+      fixedrange: true,
+      separatethousands: true
+    },
     legend: { orientation: 'h', y: 1.15, font: { size: 12 }, bgcolor: 'rgba(0,0,0,0)' }
   });
   Plotly.newPlot('streamChart', traces, layout, {responsive: true, displayModeBar: false});
@@ -76,21 +79,17 @@ function renderTable() {
   const tbody = document.querySelector('#dataTable tbody');
   if (!thead || !tbody) return;
   const labels = indices.map(i => S.monthLabels[i]);
-  thead.innerHTML = '<tr><th>Stream</th>' + labels.map(m => `<th>${m}</th>`).join('') + '<th>Range Avg</th></tr>';
+  thead.innerHTML = '<tr><th>Stream</th>' + labels.map(m => `<th>${m}</th>`).join('') + '<th>Total deals</th></tr>';
   let rows = '';
   streamOrder.forEach(s => {
-    let total = 0, deals = 0;
+    let dealsSum = 0;
     let cells = indices.map(i => {
-      const r = S.streams[s].deal_rate[i];
+      const d = S.streams[s].with_deal[i] || 0;
       const vol = S.streams[s].total[i] || 0;
-      total += vol;
-      deals += S.streams[s].with_deal[i] || 0;
-      let cls = r == null ? '' : (r >= 50 ? 'high' : r >= 20 ? 'mid' : 'low');
-      return `<td class="${cls}">${r != null ? r + '%' : '—'}<br><span style="font-size:0.72rem;color:#8A8178">${vol}</span></td>`;
+      dealsSum += d;
+      return `<td>${d.toLocaleString()}<br><span style="font-size:0.72rem;color:#8A8178">${vol} contacts</span></td>`;
     }).join('');
-    const avg = total > 0 ? Math.round(deals / total * 1000) / 10 : null;
-    const acls = avg == null ? '' : (avg >= 50 ? 'high' : avg >= 20 ? 'mid' : 'low');
-    rows += `<tr><td><strong>${s}</strong></td>${cells}<td class="${acls}">${avg != null ? avg + '%' : '—'}</td></tr>`;
+    rows += `<tr><td><strong>${s}</strong></td>${cells}<td><strong>${dealsSum.toLocaleString()}</strong></td></tr>`;
   });
   tbody.innerHTML = rows;
 }
