@@ -3,38 +3,40 @@ function renderToggles() {
 }
 
 function drawStreamChart() {
-  const S = DATA.stream, indices = getStreamFilteredIndices(), labels = indices.map(i => S.monthLabels[i]), traces = [];
+  const S = DATA.stream, indices = getStreamFilteredIndices();
+  const x = indices.map(i => monthDate(S.months[i])), traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
     traces.push({
-      x:labels, y:indices.map(i => S.streams[s].with_deal[i]||0), name:s,
+      x, y:indices.map(i => S.streams[s].with_deal[i]||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
-      hovertemplate:'<b>%{fullData.name}</b><br>%{x}: %{y:,} deals<extra></extra>'
+      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%b %Y}: %{y:,} deals<extra></extra>'
     });
   });
   Plotly.newPlot('streamChart', traces, Object.assign({}, softLayout, {
     margin:{t:40,r:8,b:40,l:40},
-    xaxis:{tickfont:{size:12,color:'#8A8178'},showgrid:false,zeroline:false,showline:false,fixedrange:true},
+    xaxis: dateAxis('month'),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',nticks:6,zeroline:false,showline:false,fixedrange:true,separatethousands:true},
     legend:{orientation:'h',y:1.15,font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   }), {responsive:true,displayModeBar:false});
 }
 
 function drawVol() {
-  const S = DATA.stream, indices = getStreamFilteredIndices(), labels = indices.map(i => S.monthLabels[i]), traces = [];
+  const S = DATA.stream, indices = getStreamFilteredIndices();
+  const x = indices.map(i => monthDate(S.months[i])), traces = [];
   streamOrder.forEach(s => {
     if (!active.has(s)) return;
     traces.push({
-      x:labels, y:indices.map(i => S.streams[s].revenue[i]||0), name:s,
+      x, y:indices.map(i => S.streams[s].revenue[i]||0), name:s,
       type:'scatter', mode:'lines+markers',
       line:{color:COLORS[s],width:2.8,shape:'spline'}, marker:{size:7,color:COLORS[s]},
-      hovertemplate:'<b>%{fullData.name}</b><br>%{x}: HK$%{y:,}<extra></extra>'
+      hovertemplate:'<b>%{fullData.name}</b><br>%{x|%b %Y}: HK$%{y:,}<extra></extra>'
     });
   });
   Plotly.newPlot('volChart', traces, Object.assign({}, softLayout, {
     margin:{t:36,r:8,b:40,l:40},
-    xaxis:{tickfont:{size:12,color:'#8A8178'},showgrid:false,zeroline:false,showline:false,fixedrange:true},
+    xaxis: dateAxis('month'),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',nticks:6,zeroline:false,showline:false,fixedrange:true,separatethousands:true},
     legend:{orientation:'h',y:1.15,font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   }), {responsive:true,displayModeBar:false});
@@ -44,7 +46,7 @@ function renderTable() {
   const S = DATA.stream, indices = getStreamFilteredIndices();
   const thead = document.querySelector('#dataTable thead'), tbody = document.querySelector('#dataTable tbody');
   if (!thead || !tbody) return;
-  const labels = indices.map(i => S.monthLabels[i]);
+  const labels = indices.map(i => fullMonthLabel(S.months[i]));
   thead.innerHTML = '<tr><th>Stream</th>' + labels.map(m => `<th>${m}</th>`).join('') + '<th>Total deals</th></tr>';
   let rows = '';
   streamOrder.forEach(s => {

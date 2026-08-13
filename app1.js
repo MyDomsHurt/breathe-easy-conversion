@@ -17,6 +17,29 @@ function monthKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
 
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function monthName(yyyyMm) { return MONTH_NAMES[parseInt(yyyyMm.slice(5, 7), 10) - 1]; }
+function fullMonthLabel(yyyyMm) { return monthName(yyyyMm) + ' ' + yyyyMm.slice(0, 4); }
+function monthDate(yyyyMm) { return yyyyMm + '-01'; }
+
+/** Real date axis — same idea as Excel / Stripe / GA. Plotly picks tick spacing; format follows the span. */
+function dateAxis(kind) {
+  const weekly = kind === 'week';
+  return {
+    type: 'date',
+    tickfont: { size: weekly ? 11 : 12, color: '#8A8178' },
+    showgrid: false, zeroline: false, showline: false, fixedrange: true, automargin: true,
+    hoverformat: weekly ? '%d %b %Y' : '%b %Y',
+    tickformatstops: weekly ? [
+      { dtickrange: [null, 86400000 * 60], value: '%d %b' },
+      { dtickrange: [86400000 * 60, null], value: '%b %Y' }
+    ] : [
+      { dtickrange: [null, 'M8'], value: '%b %Y' },
+      { dtickrange: ['M8', null], value: '%b %Y' }
+    ]
+  };
+}
+
 function updateSubtitle() {
   const el = document.getElementById('dash-subtitle');
   if (!el || !DATA || !DATA.generated) return;
@@ -88,6 +111,7 @@ function getWeeklyFiltered() {
     if (w.weekStarts[i] >= bounds.start && w.weekStarts[i] <= bounds.end) indices.push(i);
   }
   const labels = indices.map(i => w.labels[i]), n = indices.length;
+  const weekStarts = indices.map(i => w.weekStarts[i]);
   const newC = new Array(n).fill(0), withD = new Array(n).fill(0);
   weeklyActive.forEach(s => {
     const st = w.by_stream[s]; if (!st) return;
@@ -95,7 +119,7 @@ function getWeeklyFiltered() {
   });
   const rates = newC.map((c,i) => c >= 5 ? Math.round(withD[i]/c*1000)/10 : null);
   const totalNew = newC.reduce((a,b)=>a+b,0), totalDeal = withD.reduce((a,b)=>a+b,0);
-  return { labels, new_contacts: newC, with_deal: withD, deal_rate: rates, total_new: totalNew, total_with_deal: totalDeal,
+  return { labels, weekStarts, new_contacts: newC, with_deal: withD, deal_rate: rates, total_new: totalNew, total_with_deal: totalDeal,
     overall_rate: totalNew > 0 ? Math.round(totalDeal/totalNew*1000)/10 : 0,
     rangeLabel: bounds.start.slice(0,7) + ' → ' + bounds.end.slice(0,7) };
 }
@@ -110,15 +134,14 @@ function updateWeeklyKPIs(f) {
 function drawWeekly() {
   const f = getWeeklyFiltered(); updateWeeklyKPIs(f);
   if (!f.labels.length) { Plotly.newPlot('weeklyChart', [], Object.assign({}, softLayout, {annotations:[{text:'No weeks in range',showarrow:false}]}), {responsive:true,displayModeBar:false}); return; }
-  const step = f.labels.length > 20 ? 3 : (f.labels.length > 12 ? 2 : 1);
-  const ticktext = f.labels.map((lab,i) => i % step === 0 ? lab : '');
+  const x = f.weekStarts || f.labels;
   const traces = [
-    { x:f.labels, y:f.new_contacts, name:'New Contacts', type:'scatter', mode:'lines+markers', line:{color:'#FF7A45',width:2.8,shape:'spline'}, marker:{size:7,color:'#FF7A45'}, hovertemplate:'<b>New Contacts</b><br>%{x}<br>%{y}<extra></extra>' },
-    { x:f.labels, y:f.with_deal, name:'With a Deal', type:'scatter', mode:'lines+markers', line:{color:'#2A9D8F',width:2.8,shape:'spline'}, marker:{size:7,color:'#2A9D8F'}, hovertemplate:'<b>With a Deal</b><br>%{x}<br>%{y}<extra></extra>' }
+    { x, y:f.new_contacts, name:'New Contacts', type:'scatter', mode:'lines+markers', line:{color:'#FF7A45',width:2.8,shape:'spline'}, marker:{size:7,color:'#FF7A45'}, hovertemplate:'<b>New Contacts</b><br>%{x|%d %b %Y}<br>%{y}<extra></extra>' },
+    { x, y:f.with_deal, name:'With a Deal', type:'scatter', mode:'lines+markers', line:{color:'#2A9D8F',width:2.8,shape:'spline'}, marker:{size:7,color:'#2A9D8F'}, hovertemplate:'<b>With a Deal</b><br>%{x|%d %b %Y}<br>%{y}<extra></extra>' }
   ];
   const layout = Object.assign({}, softLayout, {
     margin:{t:40,r:8,b:40,l:40},
-    xaxis:{tickmode:'array',tickvals:f.labels,ticktext,tickfont:{size:11,color:'#8A8178'},showgrid:false,zeroline:false,showline:false,fixedrange:true},
+    xaxis: dateAxis('week'),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},gridcolor:'rgba(138,129,120,0.22)',zeroline:false,showline:false,fixedrange:true,nticks:6,separatethousands:true},
     legend:{orientation:'h',y:1.15,x:0,xanchor:'left',font:{size:12},bgcolor:'rgba(0,0,0,0)'}
   });
@@ -128,19 +151,18 @@ function drawWeekly() {
 function drawRate() {
   const f = getWeeklyFiltered();
   if (!f.labels.length) { Plotly.newPlot('rateChart', [], Object.assign({}, softLayout, {annotations:[{text:'No weeks in range',showarrow:false}]}), {responsive:true,displayModeBar:false}); return; }
-  const step = f.labels.length > 20 ? 3 : (f.labels.length > 12 ? 2 : 1);
-  const ticktext = f.labels.map((lab,i) => i % step === 0 ? lab : '');
+  const x = f.weekStarts || f.labels;
   const yVals = f.deal_rate, valid = yVals.filter(v => v != null), peak = valid.length ? Math.max(...valid) : 0;
   let maxY, dt;
   if (peak <= 25) { maxY=30; dt=5; } else if (peak <= 50) { maxY=Math.ceil(peak/10)*10+10; dt=10; }
   else if (peak <= 80) { maxY=Math.ceil(peak/20)*20+20; dt=20; } else { maxY=100; dt=25; }
   const layout = Object.assign({}, softLayout, {
     margin:{t:16,r:8,b:36,l:40},
-    xaxis:{tickmode:'array',tickvals:f.labels,ticktext,tickfont:{size:11,color:'#8A8178'},showgrid:false,zeroline:false,showline:false,fixedrange:true},
+    xaxis: dateAxis('week'),
     yaxis:{title:{text:'',font:{size:11}},tickfont:{size:11,color:'#8A8178'},ticksuffix:'%',gridcolor:'rgba(138,129,120,0.22)',zeroline:false,showline:false,range:[0,maxY],dtick:dt,fixedrange:true},
     showlegend:false
   });
-  Plotly.newPlot('rateChart', [{ x:f.labels, y:yVals, name:'Deal Rate', type:'scatter', mode:'lines+markers', line:{color:'#E76F51',width:2.5,shape:'spline'}, marker:{size:7,color:'#E76F51'}, fill:'tozeroy', fillcolor:'rgba(231,111,81,0.09)', hovertemplate:'%{x}<br>%{y:.0f}%<extra></extra>', connectgaps:false }], layout, {responsive:true,displayModeBar:false});
+  Plotly.newPlot('rateChart', [{ x, y:yVals, name:'Deal Rate', type:'scatter', mode:'lines+markers', line:{color:'#E76F51',width:2.5,shape:'spline'}, marker:{size:7,color:'#E76F51'}, fill:'tozeroy', fillcolor:'rgba(231,111,81,0.09)', hovertemplate:'%{x|%d %b %Y}<br>%{y:.0f}%<extra></extra>', connectgaps:false }], layout, {responsive:true,displayModeBar:false});
 }
 
 function renderStreamToggles(containerId, activeSet, onChange) {
