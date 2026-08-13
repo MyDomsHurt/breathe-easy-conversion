@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breathe Easy · Calm Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-auth-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20260813">
+</head>
+<body>
+
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="logo-mark" style="display:inline-flex;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+        <path d="M12 3c.5 2 1.5 3.5 3 4.5-1.5 1-2.5 2.5-3 4.5-.5-2-1.5-3.5-3-4.5 1.5-1 2.5-2.5 3-4.5z"/>
+        <path d="M12 12c.4 1.6 1.2 2.8 2.4 3.6-1.2.8-2 2-2.4 3.6-.4-1.6-1.2-2.8-2.4-3.6 1.2-.8 2-2 2.4-3.6z"/>
+      </svg>
+    </div>
+    <h1>Breathe <span style="color:var(--accent)">Easy</span></h1>
+    <p>Sign in with your Google account. Only authorised team members can open this dashboard.</p>
+    <button type="button" id="btn-google" class="btn-google">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.2 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.2 6.1 29.3 4 24 4 16.3 4 9.5 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.4 37.1 16.1 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.5l.1.1 6.3 5.2C39.2 37 44 31.5 44 24c0-1.3-.1-2.5-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<div id="app-root">
+<div class="container">
+  <div class="auth-bar">
+    <span id="auth-user"></span>
+    <button type="button" onclick="beSignOut()">Sign out</button>
+  </div>
+
+  <header>
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3c.5 2 1.5 3.5 3 4.5-1.5 1-2.5 2.5-3 4.5-.5-2-1.5-3.5-3-4.5 1.5-1 2.5-2.5 3-4.5z"/>
+        <path d="M12 12c.4 1.6 1.2 2.8 2.4 3.6-1.2.8-2 2-2.4 3.6-.4-1.6-1.2-2.8-2.4-3.6 1.2-.8 2-2 2.4-3.6z"/>
+      </svg>
+    </div>
+    <h1>Breathe <span>Easy</span></h1>
+    <div class="subtitle" id="dash-subtitle">A calm view of your contacts & conversions</div>
+  </header>
+
+  <div class="nav">
+    <button class="nav-btn active" data-section="weekly">Weekly Contact Flow</button>
+    <button class="nav-btn" data-section="streams">Stream Performance</button>
+    <button class="nav-btn" data-section="customers">Base by Stream</button>
+  </div>
+
+  <div id="section-weekly" class="section active">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Based on contact create date.</div>
+      <div class="date-row" data-scope="weekly">
+        <div class="date-field"><label>From</label><input type="date" id="weeklyStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="weeklyEnd" /></div>
+        <button class="date-btn" id="weeklyApply">Apply</button>
+        <button class="date-btn" id="weeklyAll">All time</button>
+        <button class="date-btn active" id="weekly90">Last 90 days</button>
+        <button class="date-btn" id="weeklyYTD">2026 YTD</button>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi orange"><div class="label">New Contacts</div><div class="value" id="kpi-total-new">—</div><div class="sub" id="kpi-weekly-range">Selected streams</div></div>
+      <div class="kpi teal"><div class="label">With a Deal</div><div class="value" id="kpi-with-deal">—</div><div class="sub">excl. Closed Lost only</div></div>
+      <div class="kpi blue"><div class="label">Association Rate</div><div class="value" id="kpi-rate">—</div><div class="sub">overall</div></div>
+    </div>
+    <div class="card">
+      <h2>New contacts each week</h2>
+      <div class="desc">Toggle streams below to include or exclude them from the trend.</div>
+      <div class="controls" id="weeklyToggles" style="margin-bottom:16px;"></div>
+      <div id="weeklyChart" class="chart"></div>
+      <div class="note"><strong>Gentle reminder:</strong> The most recent week is still partial. Newer contacts naturally have lower deal rates.</div>
+    </div>
+    <div class="card">
+      <h2>How many of each week's contacts got a deal</h2>
+      <div class="desc">Share of contacts with a non–Closed Lost deal. Weeks with fewer than 5 contacts are omitted.</div>
+      <div id="rateChart" class="chart-sm"></div>
+    </div>
+  </div>
+
+  <div id="section-streams" class="section">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Based on contact create month.</div>
+      <div class="date-row" data-scope="stream">
+        <div class="date-field"><label>From</label><input type="date" id="streamStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="streamEnd" /></div>
+        <button class="date-btn" id="streamApply">Apply</button>
+        <button class="date-btn active" id="streamAll">All time</button>
+        <button class="date-btn" id="stream90">Last 90 days</button>
+        <button class="date-btn" id="streamYTD">2026 YTD</button>
+      </div>
+    </div>
+    <div class="kpi-row" id="streamKpis"></div>
+    <div class="card">
+      <h2>Deal volume by stream</h2>
+      <div class="desc">Number of contacts created each month who have at least one deal that is not Closed Lost. Tap stream pills to focus.</div>
+      <div class="controls"><div id="toggles"></div></div>
+      <div id="streamChart" class="chart"></div>
+      <div class="note"><strong>Note:</strong> Counts contacts with a non–Closed Lost deal, by the month the contact was created.</div>
+    </div>
+    <div class="card">
+      <h2>Where the new contacts came from</h2>
+      <div class="desc">Monthly volume by acquisition stream.</div>
+      <div id="volChart" class="chart-sm"></div>
+    </div>
+    <div class="card">
+      <h2>Numbers at a glance</h2>
+      <div style="overflow-x:auto;"><table id="dataTable"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="section-customers" class="section">
+    <div class="card" style="padding-bottom: 8px;">
+      <h2>Date range</h2>
+      <div class="desc">Applies to both pies — based on contact create date.</div>
+      <div class="date-row" data-scope="pie">
+        <div class="date-field"><label>From</label><input type="date" id="pieStart" /></div>
+        <div class="date-field"><label>To</label><input type="date" id="pieEnd" /></div>
+        <button class="date-btn" id="pieApply">Apply</button>
+        <button class="date-btn" id="pieAll">All time</button>
+        <button class="date-btn" id="pie90">Last 90 days</button>
+        <button class="date-btn" id="pieYTD">2026 YTD</button>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi orange"><div class="label">Contacts in range</div><div class="value" id="kpi-contacts-total">—</div><div class="sub" id="kpi-pie-range">—</div></div>
+      <div class="kpi teal"><div class="label">With a deal</div><div class="value" id="kpi-pie-total">—</div><div class="sub">Excludes Closed Lost only</div></div>
+    </div>
+    <div class="card">
+      <h2>Contact base by stream</h2>
+      <div class="desc">All contacts created in the selected period, by acquisition stream.</div>
+      <div id="contactsPieChart" class="chart" style="height:440px;"></div>
+    </div>
+    <div class="card">
+      <h2>Contact breakdown</h2>
+      <div style="overflow-x:auto;">
+        <table id="contactsPieTable"><thead><tr><th>Stream</th><th>Contacts</th><th>Share</th></tr></thead><tbody id="contactsPieTableBody"></tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>With a deal by stream</h2>
+      <div class="desc">Contacts created in the selected period who have at least one deal that is not Closed Lost.</div>
+      <div id="pieChart" class="chart" style="height:440px;"></div>
+    </div>
+    <div class="card">
+      <h2>With a deal — breakdown</h2>
+      <div style="overflow-x:auto;">
+        <table id="pieTable"><thead><tr><th>Stream</th><th>With a deal</th><th>Share</th></tr></thead><tbody id="pieTableBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="data.js?v=20260813"></script>
+<script src="app1.js?v=20260813"></script>
+<script src="app2.js?v=20260813"></script>
+<script src="auth.js?v=20260813"></script>
+<script>
+  window.addEventListener('auth-ready', function () {
+    if (typeof updateSubtitle === 'function') updateSubtitle();
+    if (typeof initAllDatePickers === 'function') initAllDatePickers();
+    if (typeof drawWeekly === 'function') {
+      try { drawWeekly(); drawRate(); } catch (e) { console.error(e); }
+      try { drawStreamChart(); drawVol(); renderTable(); renderStreamKPIs(); } catch (e) { console.error(e); }
+      try { if (typeof drawPie === 'function') drawPie(); } catch (e) { console.error(e); }
+    }
+  });
+</script>
+</body>
+</html>
